@@ -76,14 +76,29 @@ npm run dev
 
 ## 模型配置
 
-如果需要验证真实模型调用，在 `.env.local` 中配置：
+LingQi 使用 `lingqi.config.json` 保存可提交的项目配置，例如模型、Review 输出策略、上下文限制和 GitHub API 参数。默认配置已经放在仓库根目录。
+
+如果需要本地覆盖配置，可以创建 `lingqi.config.local.json`。这个文件已被 `.gitignore` 忽略，适合调整本机的模型参数或建议数量：
+
+```json
+{
+  "review": {
+    "maxSuggestions": 5
+  },
+  "context": {
+    "maxFiles": 20
+  }
+}
+```
+
+密钥不要写进 JSON 配置文件。真实模型调用需要在 `.env.local` 中配置：
 
 ```bash
 DEEPSEEK_API_KEY=sk-...
-DEEPSEEK_MODEL=deepseek-v4-flash
+GITHUB_TOKEN=ghp_...
 ```
 
-`DEEPSEEK_MODEL` 可省略，默认使用 `deepseek-v4-flash`。
+`GITHUB_TOKEN` 可选。公开 PR 可以先不配置，私有仓库或需要提高 GitHub API 限流时再配置。
 
 本地 smoke 验证：
 
@@ -91,4 +106,4 @@ DEEPSEEK_MODEL=deepseek-v4-flash
 npm run smoke:ai
 ```
 
-这个命令会使用一份很小的 mock PR 上下文调用 DeepSeek，并检查返回结果能否通过 LingQi 的结构化 Review schema。
+这个命令会读取 `lingqi.config.json`、`lingqi.config.local.json` 和 `.env.local`，使用一份很小的 mock PR 上下文调用 DeepSeek，并检查返回结果能否通过 LingQi 的结构化 Review schema。后续 `/api/analyze-pr` 也会复用同一套配置入口。

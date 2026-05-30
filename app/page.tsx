@@ -27,6 +27,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import type { AiReviewReport } from "@/lib/report/schema";
+import { parsePrUrl } from "@/lib/github/parse-pr-url";
 
 /* ------------------------------------------------------------------ */
 /* Types & mappings                                                     */
@@ -102,10 +103,17 @@ function buildSummary(report: AiReviewReport, ctx: ApiResult["context"]): Review
 }
 
 function buildMeta(ctx: ApiResult["context"]): ReviewSummaryMeta {
+  const parsed = (() => {
+    try {
+      return parsePrUrl(ctx.prUrl);
+    } catch {
+      return null;
+    }
+  })();
   return {
-    owner: "",
-    repo: "",
-    pullNumber: 0,
+    owner: parsed?.owner ?? "",
+    repo: parsed?.repo ?? "",
+    pullNumber: parsed?.pullNumber ?? 0,
     filesCount: ctx.changedFiles,
     totalAdditions: ctx.additions,
     totalDeletions: ctx.deletions,

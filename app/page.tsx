@@ -1,43 +1,27 @@
+"use client";
+
+import PrInput from "@/components/PrInput";
+
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
-      <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-6 py-16">
-        <p className="mb-3 text-sm font-medium uppercase tracking-wide text-cyan-300">
+      <section className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 py-16 text-center">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
           LingQi
         </p>
-        <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
-          AI Pull Request review reports for GitHub PRs.
+        <h1 className="text-[28px] font-semibold leading-tight text-slate-50 md:text-[32px]">
+          AI 驱动的代码审查
         </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-          Enter a GitHub Pull Request URL, fetch the code changes, and generate
-          a structured report with summaries, risk findings, review suggestions,
-          and context notes.
+        <p className="mt-2 text-base font-semibold text-slate-200">
+          面向 GitHub Pull Requests
         </p>
-        <div className="mt-10 rounded-lg border border-slate-800 bg-slate-900/70 p-5">
-          <label
-            className="mb-2 block text-sm font-medium text-slate-200"
-            htmlFor="pr-url"
-          >
-            GitHub Pull Request URL
-          </label>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <input
-              className="min-h-11 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none transition focus:border-cyan-300"
-              id="pr-url"
-              placeholder="https://github.com/owner/repo/pull/123"
-              type="url"
-            />
-            <button
-              className="min-h-11 rounded-md bg-cyan-300 px-5 font-semibold text-slate-950 transition hover:bg-cyan-200"
-              type="button"
-            >
-              Analyze
-            </button>
-          </div>
-          <p className="mt-3 text-sm text-slate-400">
-            Initial project scaffold. PR analysis will be added in follow-up
-            changes.
-          </p>
+        <p className="mt-5 max-w-md text-sm leading-relaxed text-slate-400">
+          粘贴 GitHub PR 链接，即时获取 AI 分析 ——
+          风险检测、变更摘要、可操作的改进建议。
+        </p>
+
+        <div className="mt-8 w-full">
+          <PrInput onAnalyze={() => {}} />
         </div>
       </section>
     </main>

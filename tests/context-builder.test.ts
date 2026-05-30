@@ -9,6 +9,7 @@ const githubData: GitHubPrData = {
     title: "Improve auth flow",
     body: "This PR updates session refresh.",
     author: "octocat",
+    avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
     baseRef: "main",
     headRef: "feature/auth-refresh",
     state: "open"
@@ -46,6 +47,7 @@ describe("buildPrAnalysisContext", () => {
       title: "Improve auth flow",
       body: "This PR updates session refresh.",
       author: "octocat",
+      avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
       url: "https://github.com/octocat/hello-world/pull/42",
       baseRef: "main",
       headRef: "feature/auth-refresh",

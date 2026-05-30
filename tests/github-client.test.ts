@@ -21,7 +21,10 @@ describe("fetchGitHubPrData", () => {
           number: 42,
           title: "Improve auth flow",
           body: "This PR updates session refresh.",
-          user: { login: "octocat" },
+          user: {
+            login: "octocat",
+            avatar_url: "https://avatars.githubusercontent.com/u/583231?v=4"
+          },
           base: { ref: "main" },
           head: { ref: "feature/auth-refresh" },
           state: "open"
@@ -85,6 +88,7 @@ describe("fetchGitHubPrData", () => {
         title: "Improve auth flow",
         body: "This PR updates session refresh.",
         author: "octocat",
+        avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
         baseRef: "main",
         headRef: "feature/auth-refresh",
         state: "open"
@@ -117,7 +121,10 @@ describe("fetchGitHubPrData", () => {
           number: 42,
           title: "Improve auth flow",
           body: null,
-          user: { login: "octocat" },
+          user: {
+            login: "octocat",
+            avatar_url: "https://avatars.githubusercontent.com/u/583231?v=4"
+          },
           base: { ref: "main" },
           head: { ref: "feature/auth-refresh" },
           state: "open"

@@ -15,6 +15,7 @@ export type PrAnalysisContext = {
     title: string;
     body: string | null;
     author: string;
+    avatarUrl: string;
     url: string;
     baseRef: string;
     headRef: string;
@@ -66,6 +67,7 @@ export function buildPrAnalysisContext(
       title: githubData.pullRequest.title,
       body: githubData.pullRequest.body,
       author: githubData.pullRequest.author,
+      avatarUrl: githubData.pullRequest.avatarUrl,
       url: githubData.pullRequest.url,
       baseRef: githubData.pullRequest.baseRef,
       headRef: githubData.pullRequest.headRef,

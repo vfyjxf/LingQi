@@ -10,6 +10,7 @@ export type GitHubPullRequest = {
   title: string;
   body: string | null;
   author: string;
+  avatarUrl: string;
   baseRef: string;
   headRef: string;
   state: string;

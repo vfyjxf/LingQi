@@ -1,0 +1,105 @@
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import HomePage from "@/app/page";
+
+describe("HomePage", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("完成态展示非空 diff 内容", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            report: {
+              summary: {
+                title: "更新鉴权流程",
+                overview: "本次 PR 更新 session refresh 逻辑。",
+                changedModules: ["src/auth/session.ts"],
+                testSummary: "未看到测试文件变更。"
+              },
+              reviewFocus: [
+                {
+                  file: "src/auth/session.ts",
+                  reason: "鉴权相关逻辑需要优先审查。",
+                  priority: "high"
+                }
+              ],
+              risks: [
+                {
+                  severity: "major",
+                  confidence: "high",
+                  category: "security",
+                  file: "src/auth/session.ts",
+                  line: 3,
+                  title: "刷新 token 前需要确认用户状态",
+                  evidence: "diff 修改了 refreshSession 分支。",
+                  impact: "禁用用户可能继续获得新 token。"
+                }
+              ],
+              suggestions: [
+                {
+                  severity: "major",
+                  confidence: "high",
+                  file: "src/auth/session.ts",
+                  line: 3,
+                  problem: "刷新 token 时没有重新检查用户状态。",
+                  recommendation: "刷新前查询用户状态。",
+                  rationale: "避免已禁用账号继续获得有效会话。"
+                }
+              ],
+              contextNotes: {
+                contextUsed: ["PR 元信息", "文件 diff"],
+                limitations: [],
+                modelStrategy: "DeepSeek 结构化输出"
+              }
+            },
+            context: {
+              prUrl: "https://github.com/octocat/hello-world/pull/42",
+              author: "octocat",
+              avatarUrl:
+                "https://avatars.githubusercontent.com/u/583231?v=4",
+              changedFiles: 1,
+              additions: 2,
+              deletions: 1,
+              diffText: [
+                "diff --git a/src/auth/session.ts b/src/auth/session.ts",
+                "--- a/src/auth/session.ts",
+                "+++ b/src/auth/session.ts",
+                "@@ -1,3 +1,4 @@",
+                "-setSession(token);",
+                "+if (token) setSession(token);"
+              ].join("\n")
+            }
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" }
+          }
+        )
+      )
+    );
+
+    render(<HomePage />);
+
+    await user.type(
+      screen.getByPlaceholderText("https://github.com/owner/repo/pull/123"),
+      "https://github.com/octocat/hello-world/pull/42"
+    );
+    await user.click(screen.getByRole("button", { name: "Analyze" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /核心隐患审计/ })).toBeEnabled();
+    });
+    await user.click(screen.getByRole("button", { name: /核心隐患审计/ }));
+
+    expect(screen.queryByText("暂无 diff 数据")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/diff --git a\/src\/auth\/session.ts/)
+    ).toBeInTheDocument();
+  });
+});

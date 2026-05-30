@@ -9,6 +9,7 @@ export type PrContextBundle = {
     title: string;
     body: string | null;
     author: string;
+    avatarUrl: string;
     url: string;
     baseRef: string;
     headRef: string;

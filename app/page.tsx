@@ -11,6 +11,7 @@ import type { FileEntry } from "@/components/FileTree";
 import RiskCard from "@/components/RiskCard";
 import type { RiskFinding, Suggestion } from "@/components/RiskCard";
 import DiffViewer from "@/components/DiffViewer";
+import type { AnalyzePullRequestResult } from "@/lib/api/analyze-pr";
 import {
   GitPullRequest,
   Sparkles,
@@ -30,6 +31,8 @@ import {
 /* ------------------------------------------------------------------ */
 
 type ReviewMode = "full" | "security" | "performance" | "logic";
+
+type AnalyzeResponse = AnalyzePullRequestResult;
 
 const demoDiff = `diff --git a/src/auth/login.ts b/src/auth/login.ts
 --- a/src/auth/login.ts
@@ -159,6 +162,9 @@ export default function HomePage() {
   const [mode, setMode] = useState<ReviewMode>("full");
   const [activeTab, setActiveTab] = useState<"stats" | "risks">("stats");
   const [loadingStep, setLoadingStep] = useState(0);
+  const [analysisResult, setAnalysisResult] = useState<AnalyzeResponse | null>(
+    null
+  );
 
   useEffect(() => {
     if (step !== "live" || status === "done" || status === "error") return;
@@ -169,14 +175,31 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [step, status]);
 
-  const handleAnalyze = useCallback(async (_url: string) => {
+  const handleAnalyze = useCallback(async (url: string) => {
     setStep("live");
     setStatus("fetching");
-    await delay(1200);
-    setStatus("analyzing");
-    await delay(1800);
-    setStatus("done");
-    setStep("done");
+    setAnalysisResult(null);
+
+    try {
+      const response = await fetch("/api/analyze-pr", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prUrl: url })
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "PR 分析失败");
+      }
+
+      setStatus("analyzing");
+      setAnalysisResult(payload as AnalyzeResponse);
+      setStatus("done");
+      setStep("done");
+    } catch (error) {
+      setStatus("error");
+      setStep("error");
+    }
   }, []);
 
   function handleDemoError() {
@@ -193,7 +216,16 @@ export default function HomePage() {
     setStatus("idle");
     setSelectedFile(null);
     setActiveTab("stats");
+    setAnalysisResult(null);
   }
+
+  const displayStats = buildStatsData(analysisResult) ?? demoStats;
+  const displayFiles = buildFileEntries(analysisResult) ?? demoFiles;
+  const displayRiskCounts = buildRiskCounts(analysisResult) ?? demoRiskCounts;
+  const displayRisks = buildRiskFindings(analysisResult) ?? demoRisks;
+  const displaySuggestions =
+    buildSuggestions(analysisResult) ?? demoSuggestions;
+  const displayDiff = analysisResult?.context.diffText || demoDiff;
 
   const header = (
     <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur py-3 px-6">
@@ -369,28 +401,28 @@ export default function HomePage() {
 
           {activeTab === "stats" && (
             <div className="space-y-6">
-              <StatsPanel stats={demoStats} />
+              <StatsPanel stats={displayStats} />
             </div>
           )}
 
           {activeTab === "risks" && (
             <div className="flex gap-4 items-start min-h-[calc(100vh-12rem)]">
               <aside className="w-[220px] shrink-0 sticky top-[73px] max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-slate-800 bg-slate-900/60">
-                <FileTree files={demoFiles} riskCounts={demoRiskCounts} onFileSelect={setSelectedFile} />
+                <FileTree files={displayFiles} riskCounts={displayRiskCounts} onFileSelect={setSelectedFile} />
               </aside>
               <main className="flex-[3] min-w-0">
-                <DiffViewer diffText={demoDiff} />
+                <DiffViewer diffText={displayDiff} />
               </main>
               <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-6rem)] overflow-y-auto sticky top-[73px] flex flex-col gap-4">
                 <div className="space-y-3">
                   <h2 className="text-sm font-semibold text-slate-200">
-                    Risk Findings<span className="ml-1 font-normal text-slate-500">({demoRisks.length})</span>
+                    Risk Findings<span className="ml-1 font-normal text-slate-500">({displayRisks.length})</span>
                   </h2>
-                  {demoRisks.map((risk, i) => (
+                  {displayRisks.map((risk, i) => (
                     <RiskCard
                       key={`${risk.file}-${i}`}
                       risk={risk}
-                      suggestion={demoSuggestions[i]}
+                      suggestion={displaySuggestions[i]}
                       highlighted={selectedFile === risk.file}
                       onExpandContext={i === 0 ? () => {} : undefined}
                     />
@@ -407,4 +439,98 @@ export default function HomePage() {
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function buildStatsData(result: AnalyzeResponse | null): StatsData | null {
+  if (!result) return null;
+
+  const blockerCount = result.report.risks.filter(
+    (risk) => risk.severity === "blocker"
+  ).length;
+  const majorCount = result.report.risks.filter(
+    (risk) => risk.severity === "major"
+  ).length;
+  const minorCount = result.report.risks.filter(
+    (risk) => risk.severity === "minor"
+  ).length;
+  const nitCount = result.report.risks.filter(
+    (risk) => risk.severity === "nit"
+  ).length;
+  const categoryCounts = result.report.risks.reduce<Record<string, number>>(
+    (counts, risk) => {
+      counts[risk.category] = (counts[risk.category] ?? 0) + 1;
+      return counts;
+    },
+    {}
+  );
+
+  return {
+    filesChanged: result.context.changedFiles,
+    linesAdded: result.context.additions,
+    linesDeleted: result.context.deletions,
+    riskCount: result.report.risks.length,
+    blockerCount,
+    majorCount,
+    minorCount,
+    nitCount,
+    categoryCounts
+  };
+}
+
+function buildFileEntries(result: AnalyzeResponse | null): FileEntry[] | null {
+  if (!result) return null;
+
+  const filenames = new Set<string>();
+  for (const focus of result.report.reviewFocus) filenames.add(focus.file);
+  for (const risk of result.report.risks) filenames.add(risk.file);
+
+  return Array.from(filenames).map((filename) => ({
+    filename,
+    status: "modified"
+  }));
+}
+
+function buildRiskCounts(
+  result: AnalyzeResponse | null
+): Record<string, number> | null {
+  if (!result) return null;
+
+  return result.report.risks.reduce<Record<string, number>>((counts, risk) => {
+    counts[risk.file] = (counts[risk.file] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+function buildRiskFindings(
+  result: AnalyzeResponse | null
+): RiskFinding[] | null {
+  if (!result) return null;
+
+  return result.report.risks.map((risk) => ({
+    severity: risk.severity,
+    category: risk.category,
+    file: risk.file,
+    line: risk.line,
+    title: risk.title,
+    evidence: risk.evidence,
+    impact: risk.impact
+  }));
+}
+
+function buildSuggestions(
+  result: AnalyzeResponse | null
+): Record<number, Suggestion> | null {
+  if (!result) return null;
+
+  return result.report.suggestions.reduce<Record<number, Suggestion>>(
+    (suggestions, suggestion, index) => {
+      suggestions[index] = {
+        problem: suggestion.problem,
+        recommendation: suggestion.recommendation,
+        rationale: suggestion.rationale
+      };
+      return suggestions;
+    },
+    {}
+  );
 }

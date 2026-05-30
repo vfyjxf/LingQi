@@ -1,4 +1,4 @@
-import { openai } from "@ai-sdk/openai";
+import { createDeepSeek, deepseek } from "@ai-sdk/deepseek";
 import {
   generateObject as defaultGenerateObject,
   zodSchema,
@@ -19,14 +19,22 @@ type GenerateObject = (options: {
 }) => Promise<{ object: unknown }>;
 
 export type VercelAiProviderOptions = {
+  apiKey?: string;
   model?: LanguageModel;
+  modelId?: string;
   generateObject?: GenerateObject;
 };
 
 export function createVercelAiProvider(
   options: VercelAiProviderOptions = {}
 ): AiProvider {
-  const model = options.model ?? openai("gpt-4o-mini");
+  const model =
+    options.model ??
+    (options.apiKey
+      ? createDeepSeek({ apiKey: options.apiKey })(
+          options.modelId ?? "deepseek-v4-flash"
+        )
+      : deepseek(options.modelId ?? "deepseek-v4-flash"));
   const generateObject = options.generateObject ?? defaultGenerateObject;
 
   return {

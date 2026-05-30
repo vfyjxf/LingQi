@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const NonEmptyStringSchema = z.string().min(1);
 const OptionalLineSchema = z.preprocess(
-  (value) => (value === null ? undefined : value),
+  (value) => (value === null || value === 0 ? undefined : value),
   z.number().int().positive().optional()
 );
 

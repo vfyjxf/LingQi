@@ -3,19 +3,25 @@ import { createAiProviderFromConfig } from "@/lib/ai/provider-factory";
 import { defaultLingQiConfig } from "@/lib/config/default-config";
 
 describe("createAiProviderFromConfig", () => {
-  test("缺少 DeepSeek key 时抛出明确错误", () => {
+  test("缺少配置指定的 key 时抛出明确错误", () => {
     expect(() =>
       createAiProviderFromConfig({
-        ai: defaultLingQiConfig.ai,
+        ai: {
+          ...defaultLingQiConfig.ai,
+          apiKeyEnv: "CUSTOM_AI_KEY"
+        },
         env: {}
       })
-    ).toThrow("缺少 DEEPSEEK_API_KEY");
+    ).toThrow("缺少 CUSTOM_AI_KEY");
   });
 
-  test("有 DeepSeek key 时创建 provider", () => {
+  test("按配置指定的环境变量名创建 provider", () => {
     const provider = createAiProviderFromConfig({
-      ai: defaultLingQiConfig.ai,
-      env: { DEEPSEEK_API_KEY: "sk-test" }
+      ai: {
+        ...defaultLingQiConfig.ai,
+        apiKeyEnv: "CUSTOM_AI_KEY"
+      },
+      env: { CUSTOM_AI_KEY: "sk-test" }
     });
 
     expect(provider).toHaveProperty("analyze");

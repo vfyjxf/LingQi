@@ -98,6 +98,16 @@ DEEPSEEK_API_KEY=sk-...
 GITHUB_TOKEN=ghp_...
 ```
 
+`lingqi.config.json` 里的 `ai.apiKeyEnv` 决定从哪个环境变量读取模型密钥，默认是 `DEEPSEEK_API_KEY`。如果本地想换成别的变量名，可以在 `lingqi.config.local.json` 覆盖：
+
+```json
+{
+  "ai": {
+    "apiKeyEnv": "CUSTOM_AI_KEY"
+  }
+}
+```
+
 `GITHUB_TOKEN` 可选。公开 PR 可以先不配置，私有仓库或需要提高 GitHub API 限流时再配置。
 
 本地 smoke 验证：

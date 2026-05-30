@@ -155,7 +155,11 @@ function classifyAnalyzeError(error: unknown): Error {
 
   const message = error instanceof Error ? error.message : String(error);
 
-  if (message.includes("DEEPSEEK_API_KEY") || message.includes("配置")) {
+  if (
+    message.includes(".env.local") ||
+    message.includes("配置") ||
+    message.includes("不支持的 AI provider")
+  ) {
     return new AnalyzePrConfigError(message);
   }
 

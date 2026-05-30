@@ -8,6 +8,7 @@ describe("LingQiConfigSchema", () => {
 
     expect(result.ai.provider).toBe("deepseek");
     expect(result.ai.model).toBe("deepseek-v4-flash");
+    expect(result.ai.apiKeyEnv).toBe("DEEPSEEK_API_KEY");
     expect(result.review.language).toBe("zh-CN");
   });
 
@@ -36,5 +37,20 @@ describe("LingQiConfigSchema", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  test("空 apiKeyEnv 会给出字段路径", () => {
+    const result = LingQiConfigSchema.safeParse({
+      ...defaultLingQiConfig,
+      ai: {
+        ...defaultLingQiConfig.ai,
+        apiKeyEnv: ""
+      }
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(["ai", "apiKeyEnv"]);
+    }
   });
 });

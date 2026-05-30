@@ -1,0 +1,117 @@
+import { describe, expect, test, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import RiskCard from "@/components/RiskCard";
+import type { RiskFinding, Suggestion } from "@/components/RiskCard";
+
+const blockerRisk: RiskFinding = {
+  severity: "blocker",
+  category: "security",
+  file: "src/auth/login.ts",
+  line: 42,
+  title: "token 刷新前需确认用户状态",
+  evidence: "diff 修改了 refreshSession 分支，未检查用户状态。",
+  impact: "已禁用用户可能继续获得 token。",
+};
+
+const majorRisk: RiskFinding = {
+  severity: "major",
+  category: "performance",
+  file: "src/data/query.ts",
+  title: "N+1 查询问题",
+  evidence: "循环内调用 findById。",
+  impact: "高并发时数据库压力大。",
+};
+
+const suggestion: Suggestion = {
+  problem: "缺少 N+1 查询优化",
+  recommendation: "使用 batchFindByIds 批量查询替代逐条 findById。",
+  rationale: "批量查询可减少数据库往返次数，在高并发下性能提升显著。",
+};
+
+function renderCard(props = {}) {
+  return {
+    user: userEvent.setup(),
+    ...render(<RiskCard risk={blockerRisk} {...props} />),
+  };
+}
+
+describe("RiskCard", () => {
+  test("显示严重级别徽章和分类徽章", () => {
+    renderCard();
+    expect(screen.getByText("Blocker")).toBeInTheDocument();
+    expect(screen.getByText("Security")).toBeInTheDocument();
+  });
+
+  test("显示标题、文件路径和行号", () => {
+    renderCard();
+    expect(
+      screen.getByText("token 刷新前需确认用户状态")
+    ).toBeInTheDocument();
+    expect(screen.getByText("src/auth/login.ts:42")).toBeInTheDocument();
+  });
+
+  test("显示风险影响描述", () => {
+    renderCard();
+    expect(
+      screen.getByText("已禁用用户可能继续获得 token。")
+    ).toBeInTheDocument();
+  });
+
+  test("Major severity 显示对应徽章", () => {
+    render(<RiskCard risk={majorRisk} />);
+    expect(screen.getByText("Major")).toBeInTheDocument();
+    expect(screen.getByText("Performance")).toBeInTheDocument();
+  });
+
+  test("有 suggestion 时显示修复建议", async () => {
+    const { user } = renderCard({ suggestion });
+    await user.click(screen.getByText("查看详情"));
+
+    expect(
+      screen.getByText("使用 batchFindByIds 批量查询替代逐条 findById。")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "批量查询可减少数据库往返次数，在高并发下性能提升显著。"
+      )
+    ).toBeInTheDocument();
+  });
+
+  test("点击查看详情切换展开/收起", async () => {
+    const { user } = renderCard({ suggestion });
+
+    expect(screen.queryByText("证据")).toBeNull();
+    await user.click(screen.getByText("查看详情"));
+    expect(screen.getByText("收起详情")).toBeInTheDocument();
+    expect(screen.getByText("证据")).toBeInTheDocument();
+
+    await user.click(screen.getByText("收起详情"));
+    expect(screen.getByText("查看详情")).toBeInTheDocument();
+  });
+
+  test("无 suggestion 时不显示修复建议区块", async () => {
+    const { user } = renderCard();
+    await user.click(screen.getByText("查看详情"));
+    expect(screen.queryByText("修复建议")).toBeNull();
+  });
+
+  test("展开上下文按钮触发回调", async () => {
+    const onExpandContext = vi.fn();
+    renderCard({ onExpandContext });
+    await userEvent.setup().click(screen.getByText("展开上下文"));
+    expect(onExpandContext).toHaveBeenCalled();
+  });
+
+  test("上下文已展开时不显示按钮", () => {
+    renderCard({ contextExpanded: true });
+    expect(screen.getByText("上下文已展开")).toBeInTheDocument();
+    expect(screen.queryByText("展开上下文")).toBeNull();
+  });
+
+  test("展开中状态禁用按钮", () => {
+    renderCard({ isExpanding: true, onExpandContext: vi.fn() });
+    expect(screen.getByText("展开中...")).toBeInTheDocument();
+    expect(screen.getByText("展开中...")).toBeDisabled();
+  });
+});

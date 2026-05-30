@@ -51,9 +51,12 @@ export type AnalyzePullRequestResult = {
   report: AiReviewReport;
   context: {
     prUrl: string;
+    author: string;
+    avatarUrl: string;
     changedFiles: number;
     additions: number;
     deletions: number;
+    diffText: string;
   };
 };
 
@@ -119,14 +122,31 @@ export async function analyzePullRequest({
       report,
       context: {
         prUrl: parsedPr.url,
+        author: context.pr.author,
+        avatarUrl: context.pr.avatarUrl,
         changedFiles: context.stats.changedFiles,
         additions: context.stats.additions,
-        deletions: context.stats.deletions
+        deletions: context.stats.deletions,
+        diffText: buildDiffText(context.files)
       }
     };
   } catch (error) {
     throw classifyAnalyzeError(error);
   }
+}
+
+function buildDiffText(contextFiles: PrAnalysisContext["files"]): string {
+  return contextFiles
+    .filter((file) => file.patch?.trim())
+    .map((file) =>
+      [
+        `diff --git a/${file.filename} b/${file.filename}`,
+        `--- a/${file.filename}`,
+        `+++ b/${file.filename}`,
+        file.patch
+      ].join("\n")
+    )
+    .join("\n");
 }
 
 function loadConfig() {

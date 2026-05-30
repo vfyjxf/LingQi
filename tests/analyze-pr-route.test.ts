@@ -38,9 +38,17 @@ const result: AnalyzePullRequestResult = {
   },
   context: {
     prUrl: "https://github.com/octocat/hello-world/pull/42",
+    author: "octocat",
+    avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
     changedFiles: 1,
     additions: 12,
-    deletions: 4
+    deletions: 4,
+    diffText: [
+      "diff --git a/src/auth/session.ts b/src/auth/session.ts",
+      "--- a/src/auth/session.ts",
+      "+++ b/src/auth/session.ts",
+      "@@ -1,3 +1,5 @@"
+    ].join("\n")
   }
 };
 

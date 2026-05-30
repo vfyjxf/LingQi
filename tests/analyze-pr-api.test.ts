@@ -17,6 +17,7 @@ const githubData: GitHubPrData = {
     title: "Improve auth flow",
     body: "Update session refresh.",
     author: "octocat",
+    avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
     baseRef: "main",
     headRef: "feature/auth-refresh",
     state: "open"
@@ -39,6 +40,7 @@ const context: PrAnalysisContext = {
     title: "Improve auth flow",
     body: "Update session refresh.",
     author: "octocat",
+    avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
     url: "https://github.com/octocat/hello-world/pull/42",
     baseRef: "main",
     headRef: "feature/auth-refresh",
@@ -158,9 +160,17 @@ describe("analyzePullRequest", () => {
       report,
       context: {
         prUrl: "https://github.com/octocat/hello-world/pull/42",
+        author: "octocat",
+        avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
         changedFiles: 1,
         additions: 12,
-        deletions: 4
+        deletions: 4,
+        diffText: [
+          "diff --git a/src/auth/session.ts b/src/auth/session.ts",
+          "--- a/src/auth/session.ts",
+          "+++ b/src/auth/session.ts",
+          "@@ -1,3 +1,5 @@"
+        ].join("\n")
       }
     });
   });

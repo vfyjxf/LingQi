@@ -9,6 +9,7 @@ const context: PrAnalysisContext = {
     title: "Add auth guard",
     body: "Protect admin routes",
     author: "octocat",
+    avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
     url: "https://github.com/acme/app/pull/12",
     baseRef: "main",
     headRef: "feature/auth-guard",

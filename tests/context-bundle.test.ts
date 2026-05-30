@@ -62,6 +62,7 @@ describe("buildPrContextBundle", () => {
         title: "Update auth",
         body: null,
         author: "octocat",
+        avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
         url: "https://github.com/acme/app/pull/1",
         baseRef: "main",
         headRef: "feature/auth",

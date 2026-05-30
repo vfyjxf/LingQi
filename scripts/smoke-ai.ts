@@ -11,6 +11,7 @@ const context: PrAnalysisContext = {
     title: "Add checkout webhook validation",
     body: "Validate incoming checkout webhook signature before processing.",
     author: "demo-user",
+    avatarUrl: "https://avatars.githubusercontent.com/u/583231?v=4",
     url: "https://github.com/acme/shop/pull/42",
     baseRef: "main",
     headRef: "feature/webhook-validation",

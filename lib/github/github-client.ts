@@ -9,7 +9,7 @@ type GitHubPullResponse = {
   number: number;
   title: string;
   body: string | null;
-  user: { login: string };
+  user: { login: string; avatar_url: string };
   base: { ref: string };
   head: { ref: string };
   state: string;
@@ -64,6 +64,7 @@ export async function fetchGitHubPrData(
       title: pullRequest.title,
       body: pullRequest.body,
       author: pullRequest.user.login,
+      avatarUrl: pullRequest.user.avatar_url,
       baseRef: pullRequest.base.ref,
       headRef: pullRequest.head.ref,
       state: pullRequest.state

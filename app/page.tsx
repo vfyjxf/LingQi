@@ -5,20 +5,22 @@ import PrInput from "@/components/PrInput";
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
-      <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-6 py-16">
-        <p className="mb-3 text-sm font-medium uppercase tracking-wide text-cyan-300">
+      <section className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col items-center justify-center px-6 py-16 text-center">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
           LingQi
         </p>
-        <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
-          AI Pull Request review reports for GitHub PRs.
+        <h1 className="text-[28px] font-semibold leading-tight text-slate-50 md:text-[32px]">
+          AI-Powered Code Review
         </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-          Enter a GitHub Pull Request URL, fetch the code changes, and generate
-          a structured report with summaries, risk findings, review suggestions,
-          and context notes.
+        <p className="mt-2 text-base font-semibold text-slate-200">
+          for Pull Requests
+        </p>
+        <p className="mt-5 max-w-md text-sm leading-relaxed text-slate-400">
+          Paste any GitHub PR URL to get instant AI analysis — risk detection,
+          change summary, and actionable suggestions.
         </p>
 
-        <div className="mt-10">
+        <div className="mt-8 w-full">
           <PrInput onAnalyze={() => {}} />
         </div>
       </section>

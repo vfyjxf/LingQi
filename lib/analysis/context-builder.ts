@@ -1,3 +1,12 @@
+import {
+  groupChangeFiles,
+  type GroupedChangeFile
+} from "@/lib/analysis/change-grouper";
+import {
+  buildPrContextBundle,
+  type PrContextBundle
+} from "@/lib/analysis/context-bundle";
+import type { LingQiConfig, ReviewProfile } from "@/lib/config/schema";
 import type { GitHubPrData } from "@/lib/github/github-types";
 import { detectRiskHints, type RiskHint } from "./risk-hints";
 
@@ -30,10 +39,17 @@ export type PrAnalysisContext = {
     deletions: number;
     changes: number;
   };
+  contextBundle?: PrContextBundle;
+};
+
+export type BuildPrAnalysisContextOptions = {
+  reviewProfile?: ReviewProfile;
+  contextConfig?: LingQiConfig["context"];
 };
 
 export function buildPrAnalysisContext(
-  githubData: GitHubPrData
+  githubData: GitHubPrData,
+  options: BuildPrAnalysisContextOptions = {}
 ): PrAnalysisContext {
   const files = githubData.files.map((file) => ({
     filename: file.filename,
@@ -45,7 +61,7 @@ export function buildPrAnalysisContext(
     riskHints: detectRiskHints(file)
   }));
 
-  return {
+  const context: PrAnalysisContext = {
     pr: {
       title: githubData.pullRequest.title,
       body: githubData.pullRequest.body,
@@ -66,5 +82,25 @@ export function buildPrAnalysisContext(
       deletions: files.reduce((total, file) => total + file.deletions, 0),
       changes: files.reduce((total, file) => total + file.changes, 0)
     }
+  };
+
+  if (!options.reviewProfile || !options.contextConfig) {
+    return context;
+  }
+
+  const groupedFiles: GroupedChangeFile[] = groupChangeFiles(
+    context.files,
+    options.reviewProfile
+  );
+
+  return {
+    ...context,
+    contextBundle: buildPrContextBundle({
+      pr: context.pr,
+      stats: context.stats,
+      groupedFiles,
+      profile: options.reviewProfile,
+      contextConfig: options.contextConfig
+    })
   };
 }

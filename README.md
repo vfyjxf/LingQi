@@ -25,6 +25,7 @@ LingQi 是一个面向 GitHub Pull Request 的 AI Review 助手。
 - **GitHub REST API**：获取 PR 数据。
 - **Vercel AI SDK**：统一模型调用入口，负责结构化输出调用。
 - **@ai-sdk/deepseek**：默认 DeepSeek provider，用于本地真实模型验证。
+- **minimatch**：用于 Review Profile 的路径 glob 匹配。
 - **tsx**：运行本地 TypeScript smoke 脚本。
 
 所有运行时依赖和开发依赖均列在 `package.json` 中，并通过 `package-lock.json` 锁定版本。
@@ -47,6 +48,7 @@ LingQi 是一个面向 GitHub Pull Request 的 AI Review 助手。
 
 - PR URL 解析和 GitHub PR 数据归一化。
 - 面向代码审查的上下文构建。
+- 项目自定义 Review Profile、变更分组和上下文预算管理。
 - 风险分类、审查重点和 Review 建议的数据结构。
 - AI Provider 抽象、Review 编排流程和结构化结果校验。
 - Review 报告页面的信息组织和交互呈现。
@@ -109,6 +111,12 @@ GITHUB_TOKEN=ghp_...
 ```
 
 `GITHUB_TOKEN` 可选。公开 PR 可以先不配置，私有仓库或需要提高 GitHub API 限流时再配置。
+
+## Review Profile
+
+`reviewProfile` 用来描述当前项目希望如何审查 PR。它支持按路径和关键词把文件分到项目自定义分组，并为每个分组设置优先级、上下文预算和审查提示。
+
+这些分组会进入 AI 分析上下文，帮助模型按项目模块理解变更。未匹配文件会进入 `fallbackGroup`，避免被遗漏。
 
 本地 smoke 验证：
 

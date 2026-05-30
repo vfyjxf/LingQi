@@ -6,7 +6,7 @@ import {
   type PrAnalysisContext
 } from "@/lib/analysis/context-builder";
 import { loadLingQiConfig } from "@/lib/config/load-config";
-import type { AiModelConfig } from "@/lib/config/schema";
+import type { AiModelConfig, LingQiConfig } from "@/lib/config/schema";
 import { fetchGitHubPrData } from "@/lib/github/github-client";
 import type {
   FetchGitHubPrDataParams,
@@ -19,12 +19,18 @@ import type { AiReviewReport } from "@/lib/report/schema";
 type EnvLike = Record<string, string | undefined>;
 
 type AnalyzePullRequestDependencies = {
-  loadConfig: () => { ai: AiModelConfig };
+  loadConfig: () => LingQiConfig;
   fetchGitHubPrData: (
     params: FetchGitHubPrDataParams,
     options: GitHubClientOptions
   ) => Promise<GitHubPrData>;
-  buildPrAnalysisContext: (githubData: GitHubPrData) => PrAnalysisContext;
+  buildPrAnalysisContext: (
+    githubData: GitHubPrData,
+    options: {
+      reviewProfile: LingQiConfig["reviewProfile"];
+      contextConfig: LingQiConfig["context"];
+    }
+  ) => PrAnalysisContext;
   createAiProviderFromConfig: (options: {
     ai: AiModelConfig;
     env: EnvLike;
@@ -99,7 +105,10 @@ export async function analyzePullRequest({
       },
       { token: env.GITHUB_TOKEN?.trim() || undefined }
     );
-    const context = deps.buildPrAnalysisContext(githubData);
+    const context = deps.buildPrAnalysisContext(githubData, {
+      reviewProfile: config.reviewProfile,
+      contextConfig: config.context
+    });
     const provider = deps.createAiProviderFromConfig({
       ai: config.ai,
       env

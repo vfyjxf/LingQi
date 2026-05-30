@@ -53,4 +53,51 @@ describe("LingQiConfigSchema", () => {
       expect(result.error.issues[0].path).toEqual(["ai", "apiKeyEnv"]);
     }
   });
+
+  test("默认配置包含 Review Profile 分组", () => {
+    const config = LingQiConfigSchema.parse(defaultLingQiConfig);
+
+    expect(config.reviewProfile.groups.length).toBeGreaterThan(0);
+    expect(config.reviewProfile.fallbackGroup.id).toBe("uncategorized");
+  });
+
+  test("拒绝空的 Review Profile 分组 id", () => {
+    const result = LingQiConfigSchema.safeParse({
+      ...defaultLingQiConfig,
+      reviewProfile: {
+        ...defaultLingQiConfig.reviewProfile,
+        groups: [
+          {
+            ...defaultLingQiConfig.reviewProfile.groups[0],
+            id: ""
+          }
+        ]
+      }
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual([
+        "reviewProfile",
+        "groups",
+        0,
+        "id"
+      ]);
+    }
+  });
+
+  test("拒绝非法 Review Profile 优先级", () => {
+    const result = LingQiConfigSchema.safeParse({
+      ...defaultLingQiConfig,
+      reviewProfile: {
+        ...defaultLingQiConfig.reviewProfile,
+        fallbackGroup: {
+          ...defaultLingQiConfig.reviewProfile.fallbackGroup,
+          priority: "urgent"
+        }
+      }
+    });
+
+    expect(result.success).toBe(false);
+  });
 });

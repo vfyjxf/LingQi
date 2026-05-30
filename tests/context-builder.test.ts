@@ -88,4 +88,41 @@ describe("buildPrAnalysisContext", () => {
       }
     ]);
   });
+
+  test("按 Review Profile 构建分组上下文包", () => {
+    const context = buildPrAnalysisContext(githubData, {
+      reviewProfile: {
+        groups: [
+          {
+            id: "api",
+            name: "API 改动",
+            priority: "high",
+            match: { paths: ["src/auth/**"], keywords: [] },
+            context: { maxFiles: 5, maxPatchCharsPerFile: 12000 },
+            reviewPrompts: ["确认 API 行为兼容"]
+          }
+        ],
+        fallbackGroup: {
+          id: "uncategorized",
+          name: "未归类改动",
+          priority: "medium"
+        }
+      },
+      contextConfig: {
+        maxFiles: 30,
+        maxPatchCharsPerFile: 12000,
+        includeCommits: true,
+        includeRiskHints: true,
+        largePrThreshold: {
+          changedFiles: 20,
+          changes: 800
+        }
+      }
+    });
+
+    expect(context.contextBundle?.groups[0].id).toBe("api");
+    expect(context.contextBundle?.groups[0].reviewPrompts).toContain(
+      "确认 API 行为兼容"
+    );
+  });
 });

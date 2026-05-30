@@ -1,8 +1,8 @@
 import { loadEnvConfig } from "@next/env";
 import { analyzePrContext } from "@/lib/analysis/analyzer";
 import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
-import { getDeepSeekConfig } from "@/lib/ai/config";
-import { createVercelAiProvider } from "@/lib/ai/vercel-ai-provider";
+import { createAiProviderFromConfig } from "@/lib/ai/provider-factory";
+import { loadLingQiConfig } from "@/lib/config/load-config";
 
 loadEnvConfig(process.cwd());
 
@@ -52,12 +52,15 @@ const context: PrAnalysisContext = {
 };
 
 async function main() {
-  const config = getDeepSeekConfig();
-  const provider = createVercelAiProvider(config);
+  const config = loadLingQiConfig();
+  const provider = createAiProviderFromConfig({
+    ai: config.ai,
+    env: process.env
+  });
   const report = await analyzePrContext(context, provider);
 
   console.log("AI smoke 调用成功");
-  console.log(`模型: ${config.modelId}`);
+  console.log(`模型: ${config.ai.model}`);
   console.log(`标题: ${report.summary.title}`);
   console.log(`风险数: ${report.risks.length}`);
   console.log(`建议数: ${report.suggestions.length}`);

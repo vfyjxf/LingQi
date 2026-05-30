@@ -85,4 +85,56 @@ describe("createVercelAiProvider", () => {
       "只返回符合 schema 的结构化 Review 报告"
     );
   });
+
+  test("优先把分组上下文包写入 AI 提示词", async () => {
+    const generateObject = vi.fn().mockResolvedValue({ object: report });
+    const provider = createVercelAiProvider({
+      model: "test-model" as LanguageModel,
+      generateObject
+    });
+
+    await provider.analyze({
+      ...context,
+      contextBundle: {
+        pr: context.pr,
+        stats: context.stats,
+        groups: [
+          {
+            id: "billing",
+            name: "账单链路",
+            priority: "high",
+            reviewPrompts: ["确认 webhook 鉴权"],
+            files: [
+              {
+                filename: "app/api/billing/route.ts",
+                status: "modified",
+                additions: 42,
+                deletions: 3,
+                changes: 45,
+                patch: "@@ -1 +1 @@\n+export async function POST() {}",
+                includedInPrompt: true,
+                truncated: false,
+                riskHints: ["api"],
+                matchedBy: ["path"],
+                matchedRules: ["path:app/api/**"]
+              }
+            ],
+            budget: {
+              maxFiles: 5,
+              maxPatchCharsPerFile: 12000,
+              includedFiles: 1,
+              omittedFiles: 0
+            }
+          }
+        ],
+        limitations: ["没有读取完整调用链"]
+      }
+    });
+
+    const prompt = generateObject.mock.calls[0][0].prompt;
+    expect(prompt).toContain("PR 分组上下文 JSON");
+    expect(prompt).toContain("账单链路");
+    expect(prompt).toContain("确认 webhook 鉴权");
+    expect(prompt).toContain("不要编造未提供的上下文");
+  });
 });

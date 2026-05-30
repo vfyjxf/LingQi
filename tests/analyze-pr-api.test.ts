@@ -6,6 +6,7 @@ import {
 } from "@/lib/api/analyze-pr";
 import type { AiProvider } from "@/lib/ai/provider";
 import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
+import { defaultLingQiConfig } from "@/lib/config/default-config";
 import type { GitHubPrData } from "@/lib/github/github-types";
 import type { AiReviewReport } from "@/lib/report/schema";
 
@@ -110,16 +111,7 @@ describe("analyzePullRequest", () => {
       analyze: vi.fn().mockResolvedValue(report)
     };
     const dependencies = {
-      loadConfig: vi.fn().mockReturnValue({
-        ai: {
-          provider: "deepseek",
-          model: "deepseek-v4-flash",
-          temperature: 0.2,
-          maxOutputTokens: 4000,
-          timeoutMs: 60000,
-          strictSchema: true
-        }
-      }),
+      loadConfig: vi.fn().mockReturnValue(defaultLingQiConfig),
       fetchGitHubPrData: vi.fn().mockResolvedValue(githubData),
       buildPrAnalysisContext: vi.fn().mockReturnValue(context),
       createAiProviderFromConfig: vi.fn().mockReturnValue(provider),
@@ -144,7 +136,11 @@ describe("analyzePullRequest", () => {
       { token: "github-token" }
     );
     expect(dependencies.buildPrAnalysisContext).toHaveBeenCalledWith(
-      githubData
+      githubData,
+      {
+        reviewProfile: defaultLingQiConfig.reviewProfile,
+        contextConfig: defaultLingQiConfig.context
+      }
     );
     expect(dependencies.createAiProviderFromConfig).toHaveBeenCalledWith({
       ai: dependencies.loadConfig().ai,

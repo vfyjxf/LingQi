@@ -55,6 +55,29 @@ const report: AiReviewReport = {
     }
   ],
   suggestions: [],
+  groupAnalyses: [
+    {
+      groupId: "billing",
+      groupName: "账单链路",
+      priority: "high",
+      summary: "账单分组新增 webhook 入口，需要确认鉴权和事件幂等。",
+      changedFiles: ["app/api/billing/route.ts"],
+      keyRisks: [
+        {
+          severity: "major",
+          confidence: "medium",
+          category: "api",
+          file: "app/api/billing/route.ts",
+          title: "需要确认 webhook 鉴权",
+          evidence: "新增 POST 入口但上下文未显示签名校验。",
+          impact: "未校验的 webhook 可能导致伪造事件。"
+        }
+      ],
+      reviewSuggestions: [],
+      contextUsed: ["账单链路分组 diff", "风险 hints"],
+      limitations: ["未读取运行时配置"]
+    }
+  ],
   contextNotes: {
     contextUsed: ["PR 元信息", "文件 diff", "风险 hints"],
     limitations: ["未读取运行时配置"],
@@ -136,5 +159,10 @@ describe("createVercelAiProvider", () => {
     expect(prompt).toContain("账单链路");
     expect(prompt).toContain("确认 webhook 鉴权");
     expect(prompt).toContain("不要编造未提供的上下文");
+    expect(prompt).toContain("必须输出 groupAnalyses");
+    expect(prompt).toContain("不能自造 groupId、groupName 或 priority");
+    expect(prompt).toContain(
+      "全局 risks 和 suggestions 应从分组结果中挑选最高价值项"
+    );
   });
 });

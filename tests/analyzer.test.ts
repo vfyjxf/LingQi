@@ -45,6 +45,7 @@ const validReport: AiReviewReport = {
   ],
   risks: [],
   suggestions: [],
+  groupAnalyses: [],
   contextNotes: {
     contextUsed: ["PR 元信息", "文件 diff", "提交信息"],
     limitations: ["未读取完整仓库代码"],

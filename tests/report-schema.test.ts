@@ -41,6 +41,40 @@ const validReport = {
       rationale: "这能避免已禁用账号继续获得有效会话。"
     }
   ],
+  groupAnalyses: [
+    {
+      groupId: "auth",
+      groupName: "认证链路",
+      priority: "high",
+      summary: "认证分组修改了 session 刷新流程，需要重点确认禁用账号处理。",
+      changedFiles: ["src/auth/session.ts"],
+      keyRisks: [
+        {
+          severity: "major",
+          confidence: "high",
+          category: "security",
+          file: "src/auth/session.ts",
+          line: 42,
+          title: "刷新 token 前需要确认用户状态",
+          evidence: "diff 修改了 refreshSession 分支。",
+          impact: "禁用用户可能继续获得新 token。"
+        }
+      ],
+      reviewSuggestions: [
+        {
+          severity: "major",
+          confidence: "high",
+          file: "src/auth/session.ts",
+          line: 42,
+          problem: "刷新 token 时没有重新检查用户状态。",
+          recommendation: "刷新前查询用户状态，并拒绝 disabled 用户。",
+          rationale: "这能避免已禁用账号继续获得有效会话。"
+        }
+      ],
+      contextUsed: ["src/auth/session.ts diff", "认证分组 reviewPrompts"],
+      limitations: ["未读取完整调用链"]
+    }
+  ],
   contextNotes: {
     contextUsed: ["PR diff", "changed files"],
     limitations: ["未读取完整调用链"],
@@ -120,5 +154,49 @@ describe("AiReviewReportSchema", () => {
 
     expect(parsed.risks[0].line).toBeUndefined();
     expect(parsed.suggestions[0].line).toBeUndefined();
+  });
+
+  test("拒绝没有分组 id 的分组分析", () => {
+    const report = {
+      ...validReport,
+      groupAnalyses: [
+        {
+          ...validReport.groupAnalyses[0],
+          groupId: ""
+        }
+      ]
+    };
+
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
+  });
+
+  test("把分组分析里的空行号归一化为未提供行号", () => {
+    const report = {
+      ...validReport,
+      groupAnalyses: [
+        {
+          ...validReport.groupAnalyses[0],
+          keyRisks: [
+            {
+              ...validReport.groupAnalyses[0].keyRisks[0],
+              line: 0
+            }
+          ],
+          reviewSuggestions: [
+            {
+              ...validReport.groupAnalyses[0].reviewSuggestions[0],
+              line: null
+            }
+          ]
+        }
+      ]
+    };
+
+    const parsed = parseAiReviewReport(report);
+
+    expect(parsed.groupAnalyses[0].keyRisks[0].line).toBeUndefined();
+    expect(
+      parsed.groupAnalyses[0].reviewSuggestions[0].line
+    ).toBeUndefined();
   });
 });

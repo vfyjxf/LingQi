@@ -19,6 +19,39 @@ export const RiskCategorySchema = z.enum([
   "maintainability"
 ]);
 
+export const RiskItemSchema = z.object({
+  severity: SeveritySchema,
+  confidence: ConfidenceSchema,
+  category: RiskCategorySchema,
+  file: NonEmptyStringSchema,
+  line: OptionalLineSchema,
+  title: NonEmptyStringSchema,
+  evidence: NonEmptyStringSchema,
+  impact: NonEmptyStringSchema
+});
+
+export const SuggestionItemSchema = z.object({
+  severity: SeveritySchema,
+  confidence: ConfidenceSchema,
+  file: NonEmptyStringSchema,
+  line: OptionalLineSchema,
+  problem: NonEmptyStringSchema,
+  recommendation: NonEmptyStringSchema,
+  rationale: NonEmptyStringSchema
+});
+
+export const GroupAnalysisSchema = z.object({
+  groupId: NonEmptyStringSchema,
+  groupName: NonEmptyStringSchema,
+  priority: ReviewPrioritySchema,
+  summary: NonEmptyStringSchema,
+  changedFiles: z.array(NonEmptyStringSchema),
+  keyRisks: z.array(RiskItemSchema),
+  reviewSuggestions: z.array(SuggestionItemSchema),
+  contextUsed: z.array(NonEmptyStringSchema),
+  limitations: z.array(NonEmptyStringSchema)
+});
+
 export const AiReviewReportSchema = z.object({
   summary: z.object({
     title: NonEmptyStringSchema,
@@ -33,29 +66,9 @@ export const AiReviewReportSchema = z.object({
       priority: ReviewPrioritySchema
     })
   ),
-  risks: z.array(
-    z.object({
-      severity: SeveritySchema,
-      confidence: ConfidenceSchema,
-      category: RiskCategorySchema,
-      file: NonEmptyStringSchema,
-      line: OptionalLineSchema,
-      title: NonEmptyStringSchema,
-      evidence: NonEmptyStringSchema,
-      impact: NonEmptyStringSchema
-    })
-  ),
-  suggestions: z.array(
-    z.object({
-      severity: SeveritySchema,
-      confidence: ConfidenceSchema,
-      file: NonEmptyStringSchema,
-      line: OptionalLineSchema,
-      problem: NonEmptyStringSchema,
-      recommendation: NonEmptyStringSchema,
-      rationale: NonEmptyStringSchema
-    })
-  ),
+  risks: z.array(RiskItemSchema),
+  suggestions: z.array(SuggestionItemSchema),
+  groupAnalyses: z.array(GroupAnalysisSchema),
   contextNotes: z.object({
     contextUsed: z.array(NonEmptyStringSchema),
     limitations: z.array(NonEmptyStringSchema),

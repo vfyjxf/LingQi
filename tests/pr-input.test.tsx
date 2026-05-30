@@ -14,7 +14,7 @@ function renderPrInput(onAnalyze = vi.fn()) {
 describe("PrInput", () => {
   test("输入框为空时 Analyze 按钮禁用", () => {
     renderPrInput();
-    expect(screen.getByRole("button", { name: "Analyze" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "分析" })).toBeDisabled();
   });
 
   test("输入非法 URL 后点击 Analyze 显示错误提示", async () => {
@@ -24,7 +24,7 @@ describe("PrInput", () => {
       "https://github.com/owner/repo/pull/123"
     );
     await user.type(input, "not-a-valid-url");
-    await user.click(screen.getByRole("button", { name: "Analyze" }));
+    await user.click(screen.getByRole("button", { name: "分析" }));
 
     expect(
       screen.getByText("请输入有效的 GitHub Pull Request 链接")
@@ -39,7 +39,7 @@ describe("PrInput", () => {
       "https://github.com/owner/repo/pull/123"
     );
     await user.type(input, "https://github.com/vercel/next.js/pull/123");
-    await user.click(screen.getByRole("button", { name: "Analyze" }));
+    await user.click(screen.getByRole("button", { name: "分析" }));
 
     expect(onAnalyze).toHaveBeenCalledWith(
       "https://github.com/vercel/next.js/pull/123"
@@ -53,7 +53,7 @@ describe("PrInput", () => {
       "https://github.com/owner/repo/pull/123"
     );
     await user.type(input, "bad");
-    await user.click(screen.getByRole("button", { name: "Analyze" }));
+    await user.click(screen.getByRole("button", { name: "分析" }));
 
     expect(
       screen.getByText("请输入有效的 GitHub Pull Request 链接")
@@ -76,9 +76,9 @@ describe("PrInput", () => {
       "https://github.com/owner/repo/pull/123"
     );
     await user.type(input, "https://github.com/a/b/pull/1");
-    await user.click(screen.getByRole("button", { name: "Analyze" }));
+    await user.click(screen.getByRole("button", { name: "分析" }));
 
-    expect(screen.getByText("Analyzing...")).toBeInTheDocument();
+    expect(screen.getByText("分析中...")).toBeInTheDocument();
     expect(input).toBeDisabled();
   });
 });

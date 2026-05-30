@@ -12,6 +12,10 @@ import RiskCard from "@/components/RiskCard";
 import type { RiskFinding, Suggestion } from "@/components/RiskCard";
 import DiffViewer from "@/components/DiffViewer";
 
+/* ------------------------------------------------------------------ */
+/* Demo data                                                            */
+/* ------------------------------------------------------------------ */
+
 const demoDiff = `diff --git a/src/auth/login.ts b/src/auth/login.ts
 --- a/src/auth/login.ts
 +++ b/src/auth/login.ts
@@ -108,6 +112,17 @@ const demoError: ReviewError = {
   suggestion: "该 PR 可能不存在或仓库为私有。请检查链接后重试。",
 };
 
+const demoProgressStats: ReviewStats = {
+  filesChanged: 4,
+  linesAdded: 12,
+  linesDeleted: 12,
+  riskCount: 3,
+};
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                 */
+/* ------------------------------------------------------------------ */
+
 export default function HomePage() {
   const [step, setStep] = useState<"hero" | "live" | "done" | "error">("hero");
   const [status, setStatus] = useState<ReviewStatus>("idle");
@@ -116,18 +131,14 @@ export default function HomePage() {
 
   const handleAnalyze = useCallback(async (_url: string) => {
     setStep("live");
-
-    // ---- fetching ----
     setStatus("fetching");
     setProgressMessage("正在从 GitHub 获取 PR 数据...");
     await delay(1200);
 
-    // ---- analyzing ----
     setStatus("analyzing");
     setProgressMessage("正在分析代码变更...");
     await delay(1800);
 
-    // ---- done ----
     setStatus("done");
     setStep("done");
   }, []);
@@ -142,11 +153,11 @@ export default function HomePage() {
     });
   }
 
-  return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <section className="mx-auto w-full max-w-5xl px-6 py-12">
-        {/* ---- Header ---- */}
-        <div className="mb-8 text-center">
+  /* ========================== Hero ========================== */
+  if (step === "hero") {
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100">
+        <section className="flex min-h-screen flex-col items-center justify-center px-6">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
             LingQi
           </p>
@@ -156,11 +167,11 @@ export default function HomePage() {
           <p className="mt-1 text-sm text-slate-400">
             面向 GitHub Pull Requests
           </p>
-        </div>
+          <p className="mt-4 max-w-md text-center text-sm leading-relaxed text-slate-500">
+            粘贴 GitHub PR 链接，即时获取 AI 分析 —— 风险检测、变更摘要、可操作的改进建议。
+          </p>
 
-        {/* ---- PrInput ---- */}
-        {step === "hero" && (
-          <div className="flex flex-col items-center gap-3">
+          <div className="mt-8 flex w-full max-w-[560px] flex-col items-center gap-3">
             <PrInput onAnalyze={handleAnalyze} />
             <button
               className="text-xs text-slate-600 underline hover:text-cyan-300 transition-colors"
@@ -169,72 +180,96 @@ export default function HomePage() {
               模拟错误状态
             </button>
           </div>
-        )}
+        </section>
+      </main>
+    );
+  }
 
-        {/* ---- ReviewProgress ---- */}
-        {step !== "hero" && (
+  /* ========================== Error ========================== */
+  if (step === "error") {
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100">
+        <div className="mx-auto max-w-[720px] px-6 pt-8">
+          <ReviewProgress
+            status="error"
+            error={demoError}
+          />
+          <div className="mt-6 text-center">
+            <button
+              className="rounded-md border border-slate-700 px-4 py-2 text-xs text-slate-400 hover:border-cyan-300/50 hover:text-cyan-300 transition-colors"
+              onClick={() => {
+                setStep("hero");
+                setStatus("idle");
+              }}
+            >
+              重新分析
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  /* ========================== Progress / Done ========================== */
+  return (
+    <main className="min-h-screen bg-slate-950 text-slate-100">
+      {/* ---- Progress card (centered) ---- */}
+      {step === "live" && (
+        <div className="mx-auto max-w-[720px] px-6 pt-8">
           <ReviewProgress
             status={status}
             progressMessage={progressMessage}
-            stats={
-              status === "done"
-                ? {
-                    filesChanged: demoStats.filesChanged,
-                    linesAdded: demoStats.linesAdded,
-                    linesDeleted: demoStats.linesDeleted,
-                    riskCount: demoStats.riskCount,
-                  }
-                : undefined
-            }
-            error={status === "error" ? demoError : undefined}
+            stats={status === "done" ? demoProgressStats : undefined}
           />
-        )}
+        </div>
+      )}
 
-        {/* ---- Results ---- */}
-        {step === "done" && (
-          <div className="mt-8 space-y-6">
-            {/* Stats + FileTree row */}
-            <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-              <div className="space-y-4">
-                <StatsPanel stats={demoStats} />
-                <FileTree
-                  files={demoFiles}
-                  riskCounts={demoRiskCounts}
-                  onFileSelect={setSelectedFile}
+      {/* ---- Results: 3-column ---- */}
+      {step === "done" && (
+        <div className="flex gap-4 items-start px-4 py-4 min-h-[calc(100vh-2rem)]">
+          {/* Left: FileTree */}
+          <aside className="w-[220px] shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-lg border border-slate-800 bg-slate-900/60">
+            <FileTree
+              files={demoFiles}
+              riskCounts={demoRiskCounts}
+              onFileSelect={setSelectedFile}
+            />
+          </aside>
+
+          {/* Center: DiffViewer */}
+          <main className="flex-[3] min-w-0">
+            <DiffViewer diffText={demoDiff} />
+          </main>
+
+          {/* Right: Stats + Risks */}
+          <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-2rem)] overflow-y-auto sticky top-4 flex flex-col gap-4">
+            <StatsPanel stats={demoStats} />
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-slate-200">
+                  Risk Findings
+                  <span className="ml-1 font-normal text-slate-500">
+                    ({demoRisks.length})
+                  </span>
+                </h2>
+              </div>
+
+              {demoRisks.map((risk, i) => (
+                <RiskCard
+                  key={`${risk.file}-${i}`}
+                  risk={risk}
+                  suggestion={demoSuggestions[i]}
+                  highlighted={selectedFile === risk.file}
+                  onExpandContext={i === 0 ? () => {} : undefined}
                 />
-              </div>
-
-              {/* Risk cards */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-slate-200">
-                  Risk Findings ({demoRisks.length})
-                </h3>
-                {demoRisks.map((risk, i) => (
-                  <RiskCard
-                    key={`${risk.file}-${i}`}
-                    risk={risk}
-                    suggestion={demoSuggestions[i]}
-                    highlighted={selectedFile === risk.file}
-                    onExpandContext={
-                      i === 0 ? () => {} : undefined
-                    }
-                  />
-                ))}
-              </div>
+              ))}
             </div>
 
-            {/* Diff viewer */}
-            <div>
-              <h3 className="mb-3 text-sm font-semibold text-slate-200">
-                Diff View
-              </h3>
-              <DiffViewer diffText={demoDiff} />
-            </div>
-
-            {/* Reset button */}
-            <div className="text-center">
+            {/* Reset */}
+            <div className="pb-4 text-center">
               <button
-                className="rounded-md border border-slate-700 px-4 py-2 text-xs text-slate-400 hover:border-cyan-300/50 hover:text-cyan-300 transition-colors"
+                className="w-full rounded-md border border-slate-700 px-4 py-2 text-xs text-slate-500 hover:border-cyan-300/50 hover:text-cyan-300 transition-colors"
                 onClick={() => {
                   setStep("hero");
                   setStatus("idle");
@@ -244,12 +279,16 @@ export default function HomePage() {
                 重新分析
               </button>
             </div>
-          </div>
-        )}
-      </section>
+          </aside>
+        </div>
+      )}
     </main>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                              */
+/* ------------------------------------------------------------------ */
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

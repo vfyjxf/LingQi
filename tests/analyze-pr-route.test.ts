@@ -36,6 +36,11 @@ const result: AnalyzePullRequestResult = {
       modelStrategy: "DeepSeek 结构化输出"
     }
   },
+  reviewDraft: {
+    comments: [],
+    publishableCount: 0,
+    blockedCount: 0
+  },
   context: {
     prUrl: "https://github.com/octocat/hello-world/pull/42",
     author: "octocat",

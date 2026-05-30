@@ -80,8 +80,29 @@ const report: AiReviewReport = {
       priority: "high"
     }
   ],
-  risks: [],
-  suggestions: [],
+  risks: [
+    {
+      severity: "major",
+      confidence: "high",
+      category: "security",
+      file: "src/auth/session.ts",
+      line: 42,
+      title: "刷新 token 前需要确认用户状态",
+      evidence: "diff 修改了 refreshSession 分支。",
+      impact: "禁用用户可能继续获得新 token。"
+    }
+  ],
+  suggestions: [
+    {
+      severity: "major",
+      confidence: "medium",
+      file: "src/auth/session.ts",
+      line: 42,
+      problem: "刷新 token 时没有重新检查用户状态。",
+      recommendation: "刷新前查询用户状态。",
+      rationale: "避免已禁用账号继续获得有效会话。"
+    }
+  ],
   groupAnalyses: [],
   contextNotes: {
     contextUsed: ["PR 元信息", "文件 diff"],
@@ -158,6 +179,44 @@ describe("analyzePullRequest", () => {
     );
     expect(result).toEqual({
       report,
+      reviewDraft: {
+        comments: [
+          {
+            path: "src/auth/session.ts",
+            line: 42,
+            side: "RIGHT",
+            body: [
+              "**风险：刷新 token 前需要确认用户状态**",
+              "",
+              "证据：diff 修改了 refreshSession 分支。",
+              "",
+              "影响：禁用用户可能继续获得新 token。"
+            ].join("\n"),
+            severity: "major",
+            confidence: "high",
+            source: "risk",
+            canPublish: true
+          },
+          {
+            path: "src/auth/session.ts",
+            line: 42,
+            side: "RIGHT",
+            body: [
+              "**建议：刷新 token 时没有重新检查用户状态。**",
+              "",
+              "建议做法：刷新前查询用户状态。",
+              "",
+              "原因：避免已禁用账号继续获得有效会话。"
+            ].join("\n"),
+            severity: "major",
+            confidence: "medium",
+            source: "suggestion",
+            canPublish: true
+          }
+        ],
+        publishableCount: 2,
+        blockedCount: 0
+      },
       context: {
         prUrl: "https://github.com/octocat/hello-world/pull/42",
         author: "octocat",

@@ -15,6 +15,8 @@ import type {
 } from "@/lib/github/github-types";
 import { parsePrUrl } from "@/lib/github/parse-pr-url";
 import type { AiReviewReport } from "@/lib/report/schema";
+import { buildReviewDraft } from "@/lib/review-draft/build-review-draft";
+import type { ReviewDraft } from "@/lib/review-draft/schema";
 
 type EnvLike = Record<string, string | undefined>;
 
@@ -49,6 +51,7 @@ export type AnalyzePullRequestOptions = {
 
 export type AnalyzePullRequestResult = {
   report: AiReviewReport;
+  reviewDraft: ReviewDraft;
   context: {
     prUrl: string;
     author: string;
@@ -117,9 +120,11 @@ export async function analyzePullRequest({
       env
     });
     const report = await deps.analyzePrContext(context, provider);
+    const reviewDraft = buildReviewDraft(report, context);
 
     return {
       report,
+      reviewDraft,
       context: {
         prUrl: parsedPr.url,
         author: context.pr.author,

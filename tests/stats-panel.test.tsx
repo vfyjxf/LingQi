@@ -15,18 +15,19 @@ const mockStats: StatsData = {
 };
 
 describe("StatsPanel", () => {
-  test("显示文件数和行数统计", () => {
+  test("显示综合质量评级", () => {
     render(<StatsPanel stats={mockStats} />);
 
-    expect(screen.getByText("8")).toBeInTheDocument();
-    expect(screen.getByText("234")).toBeInTheDocument();
-    expect(screen.getByText("67")).toBeInTheDocument();
+    expect(screen.getByText("PR 综合质量评级")).toBeInTheDocument();
+    // 100 - (1*20 + 2*12 + 1*5 + 1*2) = 100 - 51 = 49 → D
+    expect(screen.getByText("D")).toBeInTheDocument();
   });
 
-  test("显示严重级别分段统计", () => {
+  test("显示风险严重度统计", () => {
     render(<StatsPanel stats={mockStats} />);
 
-    expect(screen.getByText("Risks by Severity")).toBeInTheDocument();
+    expect(screen.getByText("风险严重度统计")).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument(); // total risk count in donut center
   });
 
   test("显示所有严重级别分类", () => {
@@ -38,7 +39,7 @@ describe("StatsPanel", () => {
     expect(screen.getByText("Nit")).toBeInTheDocument();
   });
 
-  test("显示零值时正确渲染", () => {
+  test("零风险时显示优秀状态", () => {
     const zeroStats: StatsData = {
       filesChanged: 0,
       linesAdded: 0,
@@ -52,8 +53,6 @@ describe("StatsPanel", () => {
 
     render(<StatsPanel stats={zeroStats} />);
 
-    // All "0" values should appear 8 times (3 overview + 5 risk breakdown)
-    const zeros = screen.getAllByText("0");
-    expect(zeros.length).toBeGreaterThanOrEqual(7);
+    expect(screen.getByText("零高危隐患，代码状态极为优秀！")).toBeInTheDocument();
   });
 });

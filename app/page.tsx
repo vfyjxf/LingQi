@@ -5,7 +5,7 @@ import PrInput from "@/components/PrInput";
 import ReviewProgress from "@/components/ReviewProgress";
 import type { ReviewStatus } from "@/components/ReviewProgress";
 import StatsPanel from "@/components/StatsPanel";
-import type { StatsData } from "@/components/StatsPanel";
+import type { StatsData, FilterState } from "@/components/StatsPanel";
 import FileTree from "@/components/FileTree";
 import type { FileEntry } from "@/components/FileTree";
 import RiskCard from "@/components/RiskCard";
@@ -160,6 +160,23 @@ export default function HomePage() {
   const [generalSuggestions, setGeneralSuggestions] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterState>({ type: null, value: null });
+
+  const filteredRisks = risks.filter((r) => {
+    if (!activeFilter.type || !activeFilter.value) return true;
+    if (activeFilter.type === "severity") return r.severity === activeFilter.value;
+    if (activeFilter.type === "category") return r.category === activeFilter.value;
+    return true;
+  });
+
+  function handleFilterChange(type: "category" | "severity" | "clear", value: string | null) {
+    if (type === "clear") {
+      setActiveFilter({ type: null, value: null });
+    } else {
+      setActiveFilter({ type, value });
+      setActiveTab("risks");
+    }
+  }
 
   useEffect(() => {
     if (step !== "live" || status === "done" || status === "error") return;
@@ -218,6 +235,7 @@ export default function HomePage() {
     setMeta(null);
     setGeneralSuggestions([]);
     setErrorMsg("");
+    setActiveFilter({ type: null, value: null });
   }
 
   const header = (
@@ -376,7 +394,7 @@ export default function HomePage() {
           {activeTab === "stats" && (
             <div className="space-y-6">
               {summary && meta && <ReviewSummary summary={summary} generalSuggestions={generalSuggestions} meta={meta} />}
-              {stats && <StatsPanel stats={stats} />}
+              {stats && <StatsPanel stats={stats} activeFilter={activeFilter} onFilterChange={handleFilterChange} />}
             </div>
           )}
 
@@ -390,12 +408,36 @@ export default function HomePage() {
               </main>
               <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-6rem)] overflow-y-auto sticky top-[73px] flex flex-col gap-4">
                 <div className="space-y-3">
-                  <h2 className="text-sm font-semibold text-slate-200">
-                    Risk Findings<span className="ml-1 font-normal text-slate-500">({risks.length})</span>
-                  </h2>
-                  {risks.map((risk, i) => (
-                    <RiskCard key={`${risk.file}-${i}`} risk={risk} suggestion={suggestions[i]} highlighted={selectedFile === risk.file} />
-                  ))}
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-semibold text-slate-200">
+                      Risk Findings
+                      <span className="ml-1 font-normal text-slate-500">
+                        ({filteredRisks.length}{filteredRisks.length !== risks.length ? ` / ${risks.length}` : ""})
+                      </span>
+                    </h2>
+                    {activeFilter.type && (
+                      <span className="inline-flex items-center gap-1 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-medium text-cyan-400">
+                        筛选: {activeFilter.type === "severity" ? "级别" : "类别"}={activeFilter.value}
+                        <button onClick={() => handleFilterChange("clear", null)} className="ml-0.5 font-extrabold hover:text-cyan-300">&times;</button>
+                      </span>
+                    )}
+                  </div>
+                  {filteredRisks.length > 0 ? (
+                    filteredRisks.map((risk, i) => (
+                      <RiskCard key={`${risk.file}-${i}`} risk={risk} suggestion={suggestions[i]} highlighted={selectedFile === risk.file} />
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-16 text-slate-500 space-y-4">
+                      <AlertCircle className="h-10 w-10" />
+                      <div className="text-center">
+                        <p className="text-sm font-semibold text-slate-400">没有匹配的隐患记录</p>
+                        <p className="mt-1 text-xs text-slate-500">当前筛选条件下未找到风险反馈，请清除筛选重试。</p>
+                      </div>
+                      <button onClick={() => handleFilterChange("clear", null)} className="rounded-md border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-cyan-400 transition hover:bg-slate-800">
+                        清除所有筛选条件
+                      </button>
+                    </div>
+                  )}
                 </div>
               </aside>
             </div>

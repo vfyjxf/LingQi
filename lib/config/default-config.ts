@@ -4,6 +4,7 @@ export const defaultLingQiConfig: LingQiConfig = {
   ai: {
     provider: "deepseek",
     model: "deepseek-v4-flash",
+    apiKeyEnv: "DEEPSEEK_API_KEY",
     temperature: 0.2,
     maxOutputTokens: 4000,
     timeoutMs: 60000,

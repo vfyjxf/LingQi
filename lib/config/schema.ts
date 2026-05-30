@@ -9,6 +9,7 @@ export const LingQiConfigSchema = z.object({
   ai: z.object({
     provider: AiProviderNameSchema,
     model: z.string().min(1),
+    apiKeyEnv: z.string().trim().min(1),
     temperature: z.number().min(0).max(1),
     maxOutputTokens: z.number().int().min(512).max(16000),
     timeoutMs: z.number().int().min(5000).max(180000),

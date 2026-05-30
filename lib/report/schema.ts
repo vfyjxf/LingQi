@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 const NonEmptyStringSchema = z.string().min(1);
+const OptionalLineSchema = z.preprocess(
+  (value) => (value === null ? undefined : value),
+  z.number().int().positive().optional()
+);
 
 export const SeveritySchema = z.enum(["blocker", "major", "minor", "nit"]);
 export const ConfidenceSchema = z.enum(["high", "medium", "low"]);
@@ -35,7 +39,7 @@ export const AiReviewReportSchema = z.object({
       confidence: ConfidenceSchema,
       category: RiskCategorySchema,
       file: NonEmptyStringSchema,
-      line: z.number().int().positive().optional(),
+      line: OptionalLineSchema,
       title: NonEmptyStringSchema,
       evidence: NonEmptyStringSchema,
       impact: NonEmptyStringSchema
@@ -46,7 +50,7 @@ export const AiReviewReportSchema = z.object({
       severity: SeveritySchema,
       confidence: ConfidenceSchema,
       file: NonEmptyStringSchema,
-      line: z.number().int().positive().optional(),
+      line: OptionalLineSchema,
       problem: NonEmptyStringSchema,
       recommendation: NonEmptyStringSchema,
       rationale: NonEmptyStringSchema

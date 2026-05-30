@@ -98,4 +98,27 @@ describe("AiReviewReportSchema", () => {
 
     expect(() => AiReviewReportSchema.parse(report)).toThrow();
   });
+
+  test("把模型输出的空行号归一化为未提供行号", () => {
+    const report = {
+      ...validReport,
+      risks: [
+        {
+          ...validReport.risks[0],
+          line: null
+        }
+      ],
+      suggestions: [
+        {
+          ...validReport.suggestions[0],
+          line: null
+        }
+      ]
+    };
+
+    const parsed = parseAiReviewReport(report);
+
+    expect(parsed.risks[0].line).toBeUndefined();
+    expect(parsed.suggestions[0].line).toBeUndefined();
+  });
 });

@@ -23,6 +23,8 @@ LingQi 是一个面向 GitHub Pull Request 的 AI Review 助手。
 - **Zod**：校验结构化 AI Review 报告。
 - **Vitest**：测试核心解析和分析逻辑。
 - **GitHub REST API**：获取 PR 数据。
+- **Vercel AI SDK**：统一模型调用入口，负责结构化输出调用。
+- **@ai-sdk/openai**：默认 OpenAI-compatible provider，后续可替换为其他模型服务。
 
 所有运行时依赖和开发依赖均列在 `package.json` 中，并通过 `package-lock.json` 锁定版本。
 
@@ -45,9 +47,11 @@ LingQi 是一个面向 GitHub Pull Request 的 AI Review 助手。
 - PR URL 解析和 GitHub PR 数据归一化。
 - 面向代码审查的上下文构建。
 - 风险分类、审查重点和 Review 建议的数据结构。
-- AI Review 编排流程和结构化结果校验。
+- AI Provider 抽象、Review 编排流程和结构化结果校验。
 - Review 报告页面的信息组织和交互呈现。
 - 本地 demo/mock 分析模式。
+
+Vercel AI SDK 和模型 provider 只负责模型调用能力；PR 上下文如何组织、Review 报告如何分层、风险与建议如何约束，都是 LingQi 自己实现的部分。
 
 本项目围绕所选议题“AI PR Review 助手”自主开发。当前初始化框架没有复用个人过去项目代码。
 

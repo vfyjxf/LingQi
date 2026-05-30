@@ -10,14 +10,14 @@ export default function HomePage() {
           LingQi
         </p>
         <h1 className="text-[28px] font-semibold leading-tight text-slate-50 md:text-[32px]">
-          AI-Powered Code Review
+          AI 驱动的代码审查
         </h1>
         <p className="mt-2 text-base font-semibold text-slate-200">
-          for Pull Requests
+          面向 GitHub Pull Requests
         </p>
         <p className="mt-5 max-w-md text-sm leading-relaxed text-slate-400">
-          Paste any GitHub PR URL to get instant AI analysis — risk detection,
-          change summary, and actionable suggestions.
+          粘贴 GitHub PR 链接，即时获取 AI 分析 ——
+          风险检测、变更摘要、可操作的改进建议。
         </p>
 
         <div className="mt-8 w-full">

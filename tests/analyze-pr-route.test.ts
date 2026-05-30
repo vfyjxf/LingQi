@@ -29,6 +29,7 @@ const result: AnalyzePullRequestResult = {
     reviewFocus: [],
     risks: [],
     suggestions: [],
+    groupAnalyses: [],
     contextNotes: {
       contextUsed: ["PR 元信息", "文件 diff"],
       limitations: ["未读取完整仓库"],

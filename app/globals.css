@@ -2,6 +2,41 @@
 
 :root {
   color-scheme: dark;
+
+  /* ---- Background ---- */
+  --color-bg: #0d1117;
+  --color-surface: #161b22;
+  --color-surface-hover: #1c2128;
+
+  /* ---- Border ---- */
+  --color-border: #30363d;
+  --color-border-hover: #8c959f;
+
+  /* ---- Text ---- */
+  --color-text-primary: #c9d1d9;
+  --color-text-secondary: #8b949e;
+  --color-text-placeholder: #57606a;
+
+  /* ---- Accent (blue) ---- */
+  --color-accent: #58a6ff;
+  --color-accent-subtle: #58a6ff1a;
+
+  /* ---- Semantic ---- */
+  --color-success: #3fb950;
+  --color-success-btn: #238636;
+  --color-success-btn-hover: #2ea043;
+  --color-error: #f85149;
+  --color-error-border: #cf222e;
+  --color-warning: #d29922;
+  --color-purple: #8957e5;
+  --color-purple-bg: #8250df;
+
+  /* ---- Progress ---- */
+  --color-progress-track: #21262d;
+
+  /* ---- Layout ---- */
+  --header-height: 57px;
+  --sidebar-width: 220px;
 }
 
 * {
@@ -19,6 +54,12 @@ body {
     Arial,
     Helvetica,
     sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.text-accent {
+  color: var(--color-accent);
 }
 
 @keyframes progress-slide {

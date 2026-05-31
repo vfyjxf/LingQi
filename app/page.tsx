@@ -192,6 +192,13 @@ export default function HomePage() {
     }
   }
 
+  function resetReviewViewState() {
+    setSelectedFile(null);
+    setActiveFilter({ type: null, value: null });
+    setSelectedReviewTarget(null);
+    setReviewActionMessage(null);
+  }
+
   useEffect(() => {
     if (step !== "live" || status === "done" || status === "error") return;
     setLoadingStep(0);
@@ -235,6 +242,7 @@ export default function HomePage() {
     setStatus("fetching");
     setAnalysisResult(null);
     setReviewPrompt(userPrompt);
+    resetReviewViewState();
 
     try {
       const response = await fetch("/api/analyze-pr", {
@@ -295,6 +303,26 @@ export default function HomePage() {
   const displayGeneralSuggestions =
     buildGeneralSuggestions(analysisResult) ?? [];
   const inlineReviews = buildInlineReviews(analysisResult, displayRisks);
+
+  useEffect(() => {
+    if (!analysisResult) return;
+
+    if (selectedFile && !displayFiles.some((file) => file.filename === selectedFile)) {
+      setSelectedFile(null);
+      setSelectedReviewTarget(null);
+    }
+
+    if (
+      activeFilter.type &&
+      !displayRisks.some((risk) =>
+        activeFilter.type === "severity"
+          ? risk.severity === activeFilter.value
+          : risk.category === activeFilter.value
+      )
+    ) {
+      setActiveFilter({ type: null, value: null });
+    }
+  }, [analysisResult, activeFilter, displayFiles, displayRisks, selectedFile]);
 
   function handleLocateRisk(risk: RiskFinding) {
     setSelectedFile(risk.file);

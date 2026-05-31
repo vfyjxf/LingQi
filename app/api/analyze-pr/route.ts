@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     const body = await readJsonBody(request);
     const result = await analyzePullRequest({
       prUrl: body?.prUrl,
+      userPrompt: body?.userPrompt,
       env: process.env
     });
 

@@ -36,6 +36,7 @@ type AnalyzePullRequestDependencies = {
     options: {
       reviewProfile: LingQiConfig["reviewProfile"];
       contextConfig: LingQiConfig["context"];
+      userPrompt?: string;
     }
   ) => PrAnalysisContext;
   createAiProviderFromConfig: (options: {
@@ -50,6 +51,7 @@ type AnalyzePullRequestDependencies = {
 
 export type AnalyzePullRequestOptions = {
   prUrl: unknown;
+  userPrompt?: unknown;
   env?: EnvLike;
   dependencies?: Partial<AnalyzePullRequestDependencies>;
 };
@@ -93,10 +95,12 @@ export class AnalyzePrConfigError extends Error {
 
 export async function analyzePullRequest({
   prUrl,
+  userPrompt,
   env = process.env,
   dependencies = {}
 }: AnalyzePullRequestOptions): Promise<AnalyzePullRequestResult> {
   const prUrlText = validatePrUrlInput(prUrl);
+  const userPromptText = validateUserPromptInput(userPrompt);
   const parsedPr = parsePrUrlOrThrowInputError(prUrlText);
 
   const deps: AnalyzePullRequestDependencies = {
@@ -120,7 +124,8 @@ export async function analyzePullRequest({
     );
     const context = deps.buildPrAnalysisContext(githubData, {
       reviewProfile: config.reviewProfile,
-      contextConfig: config.context
+      contextConfig: config.context,
+      ...(userPromptText ? { userPrompt: userPromptText } : {})
     });
     const provider = deps.createAiProviderFromConfig({
       ai: config.ai,
@@ -179,6 +184,27 @@ function validatePrUrlInput(prUrl: unknown): string {
   }
 
   return prUrl;
+}
+
+function validateUserPromptInput(userPrompt: unknown): string | undefined {
+  if (userPrompt === undefined || userPrompt === null) {
+    return undefined;
+  }
+
+  if (typeof userPrompt !== "string") {
+    throw new AnalyzePrInputError("用户补充审查要求必须是字符串");
+  }
+
+  const trimmed = userPrompt.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (trimmed.length > 1000) {
+    throw new AnalyzePrInputError("用户补充审查要求不能超过 1000 个字符");
+  }
+
+  return trimmed;
 }
 
 function parsePrUrlOrThrowInputError(prUrl: string) {

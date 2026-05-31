@@ -142,4 +142,12 @@ describe("buildPrAnalysisContext", () => {
       "确认 API 行为兼容"
     );
   });
+
+  test("保留用户补充审查要求", () => {
+    const context = buildPrAnalysisContext(githubData, {
+      userPrompt: "重点检查缓存一致性"
+    });
+
+    expect(context.userPrompt).toBe("重点检查缓存一致性");
+  });
 });

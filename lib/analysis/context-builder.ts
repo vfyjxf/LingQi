@@ -44,12 +44,14 @@ export type PrAnalysisContext = {
     deletions: number;
     changes: number;
   };
+  userPrompt?: string;
   contextBundle?: PrContextBundle;
 };
 
 export type BuildPrAnalysisContextOptions = {
   reviewProfile?: ReviewProfile;
   contextConfig?: LingQiConfig["context"];
+  userPrompt?: string;
 };
 
 export function buildPrAnalysisContext(
@@ -93,7 +95,8 @@ export function buildPrAnalysisContext(
       additions: files.reduce((total, file) => total + file.additions, 0),
       deletions: files.reduce((total, file) => total + file.deletions, 0),
       changes: files.reduce((total, file) => total + file.changes, 0)
-    }
+    },
+    ...(options.userPrompt ? { userPrompt: options.userPrompt } : {})
   };
 
   if (!options.reviewProfile || !options.contextConfig) {

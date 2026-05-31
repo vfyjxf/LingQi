@@ -205,7 +205,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <RadarChart cx="50%" cy="50%" data={radarData} margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
-              <PolarGrid stroke="#21262d" gridType="polygon" />
+              <PolarGrid stroke="#30363d" gridType="polygon" />
               <PolarAngleAxis
                 dataKey="category"
                 tick={(props: any) => {
@@ -214,7 +214,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                   const isActive = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
                   return (
                     <g>
-                      <line x1={centerX} y1={centerY} x2={x} y2={y} stroke="#21262d" strokeWidth={1} />
+                      <line x1={centerX} y1={centerY} x2={x} y2={y} stroke="#30363d" strokeWidth={1} />
                       <text
                         x={x}
                         y={y}

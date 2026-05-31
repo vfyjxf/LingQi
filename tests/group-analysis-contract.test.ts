@@ -5,6 +5,7 @@ import {
   validateGroupAnalysisContract
 } from "@/lib/analysis/group-analysis-contract";
 import type { AiReviewReport } from "@/lib/report/schema";
+import { makeValidReport } from "@/tests/fixtures/report-fixtures";
 
 const context: PrAnalysisContext = {
   pr: {
@@ -121,13 +122,7 @@ const context: PrAnalysisContext = {
   }
 };
 
-const report: AiReviewReport = {
-  summary: {
-    title: "更新认证和账单链路",
-    overview: "本次 PR 修改认证守卫和账单 webhook。",
-    changedModules: ["app/auth/guard.ts", "app/api/billing/route.ts"],
-    testSummary: "当前上下文未看到测试文件变更。"
-  },
+const report: AiReviewReport = makeValidReport({
   reviewFocus: [],
   risks: [],
   suggestions: [],
@@ -160,7 +155,7 @@ const report: AiReviewReport = {
     limitations: [],
     modelStrategy: "按 Review Profile 分组输出"
   }
-};
+});
 
 describe("validateGroupAnalysisContract", () => {
   test("分组输出符合上下文契约时返回报告", () => {

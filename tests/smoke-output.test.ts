@@ -2,47 +2,9 @@ import { describe, expect, test } from "vitest";
 import { formatSmokeOutput } from "@/lib/smoke/smoke-output";
 import type { AiReviewReport } from "@/lib/report/schema";
 import type { ReviewDraft } from "@/lib/review-draft/schema";
+import { makeValidReport } from "@/tests/fixtures/report-fixtures";
 
-const report: AiReviewReport = {
-  summary: {
-    title: "新增 checkout webhook 校验",
-    overview: "本次 PR 增加 webhook 签名校验。",
-    changedModules: ["app/api/checkout/route.ts"],
-    testSummary: "当前上下文未看到测试文件变更。"
-  },
-  reviewFocus: [],
-  risks: [
-    {
-      severity: "major",
-      confidence: "high",
-      category: "security",
-      file: "app/api/checkout/route.ts",
-      line: 12,
-      title: "需要校验 webhook 签名",
-      evidence: "新增 POST 入口。",
-      impact: "未校验请求可能被伪造。"
-    }
-  ],
-  suggestions: [],
-  groupAnalyses: [
-    {
-      groupId: "api",
-      groupName: "API",
-      priority: "high",
-      summary: "新增 webhook 入口。",
-      changedFiles: ["app/api/checkout/route.ts"],
-      keyRisks: [],
-      reviewSuggestions: [],
-      contextUsed: ["文件 diff"],
-      limitations: ["未读取运行时密钥配置"]
-    }
-  ],
-  contextNotes: {
-    contextUsed: ["PR 元信息", "文件 diff"],
-    limitations: ["未读取完整仓库"],
-    modelStrategy: "结构化输出"
-  }
-};
+const report: AiReviewReport = makeValidReport();
 
 const reviewDraft: ReviewDraft = {
   comments: [],
@@ -71,9 +33,8 @@ describe("formatSmokeOutput", () => {
     expect(output).toContain("作者: @octocat");
     expect(output).toContain("Review 草稿: 可发布 1, 已拦截 1");
     expect(output).toContain(
-      "1. [major/high] app/api/checkout/route.ts:12 - 需要校验 webhook 签名"
+      "1. [major/high] src/auth/session.ts:42 - 刷新 token 前需要确认用户状态"
     );
-    expect(output).toContain("1. 未读取完整仓库");
-    expect(output).toContain("2. 未读取运行时密钥配置");
+    expect(output).toContain("1. 未读取完整调用链");
   });
 });

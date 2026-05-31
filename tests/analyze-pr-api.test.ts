@@ -9,6 +9,7 @@ import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
 import { defaultLingQiConfig } from "@/lib/config/default-config";
 import type { GitHubPrData } from "@/lib/github/github-types";
 import type { AiReviewReport } from "@/lib/report/schema";
+import { makeValidReport } from "@/tests/fixtures/report-fixtures";
 
 const githubData: GitHubPrData = {
   pullRequest: {
@@ -66,7 +67,7 @@ const context: PrAnalysisContext = {
   }
 };
 
-const report: AiReviewReport = {
+const report: AiReviewReport = makeValidReport({
   summary: {
     title: "更新鉴权流程",
     overview: "本次 PR 更新 session refresh 逻辑。",
@@ -109,7 +110,7 @@ const report: AiReviewReport = {
     limitations: ["未读取完整仓库"],
     modelStrategy: "DeepSeek 结构化输出"
   }
-};
+});
 
 describe("analyzePullRequest", () => {
   test("缺少 prUrl 时抛出输入错误", async () => {

@@ -39,7 +39,9 @@
   --sidebar-width: 220px;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -47,6 +49,8 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #30363d transparent;
 }
 
 body {
@@ -76,11 +80,6 @@ body {
 }
 
 /* ---- Thin Scrollbar (GitHub Dark) ---- */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #30363d transparent;
-}
-
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

@@ -1,12 +1,15 @@
 import { loadEnvConfig } from "@next/env";
+import { createAiProviderFromConfig } from "@/lib/ai/provider-factory";
 import { analyzePrContext } from "@/lib/analysis/analyzer";
 import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
-import { createAiProviderFromConfig } from "@/lib/ai/provider-factory";
+import { analyzePullRequest } from "@/lib/api/analyze-pr";
 import { loadLingQiConfig } from "@/lib/config/load-config";
+import { buildReviewDraft } from "@/lib/review-draft/build-review-draft";
+import { formatSmokeOutput } from "@/lib/smoke/smoke-output";
 
 loadEnvConfig(process.cwd());
 
-const context: PrAnalysisContext = {
+const mockContext: PrAnalysisContext = {
   pr: {
     title: "Add checkout webhook validation",
     body: "Validate incoming checkout webhook signature before processing.",
@@ -54,17 +57,59 @@ const context: PrAnalysisContext = {
 
 async function main() {
   const config = loadLingQiConfig();
+  const prUrl = getPrUrlArg(process.argv.slice(2)) ?? process.env.SMOKE_PR_URL;
+
+  if (prUrl) {
+    const result = await analyzePullRequest({
+      prUrl,
+      env: process.env
+    });
+
+    console.log(
+      formatSmokeOutput({
+        mode: "real-pr",
+        model: config.ai.model,
+        prUrl: result.context.prUrl,
+        author: result.context.author,
+        changedFiles: result.context.changedFiles,
+        additions: result.context.additions,
+        deletions: result.context.deletions,
+        report: result.report,
+        reviewDraft: result.reviewDraft
+      })
+    );
+    return;
+  }
+
   const provider = createAiProviderFromConfig({
     ai: config.ai,
     env: process.env
   });
-  const report = await analyzePrContext(context, provider);
+  const report = await analyzePrContext(mockContext, provider);
+  const reviewDraft = buildReviewDraft(report, mockContext);
 
-  console.log("AI smoke 调用成功");
-  console.log(`模型: ${config.ai.model}`);
-  console.log(`标题: ${report.summary.title}`);
-  console.log(`风险数: ${report.risks.length}`);
-  console.log(`建议数: ${report.suggestions.length}`);
+  console.log(
+    formatSmokeOutput({
+      mode: "mock",
+      model: config.ai.model,
+      prUrl: mockContext.pr.url,
+      author: mockContext.pr.author,
+      changedFiles: mockContext.stats.changedFiles,
+      additions: mockContext.stats.additions,
+      deletions: mockContext.stats.deletions,
+      report,
+      reviewDraft
+    })
+  );
+}
+
+function getPrUrlArg(args: string[]): string | undefined {
+  const prFlagIndex = args.indexOf("--pr");
+  if (prFlagIndex >= 0) {
+    return args[prFlagIndex + 1]?.trim() || undefined;
+  }
+
+  return undefined;
 }
 
 main().catch((error) => {

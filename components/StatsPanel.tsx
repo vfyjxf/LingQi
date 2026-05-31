@@ -36,11 +36,11 @@ function calcQualityScore(stats: StatsData) {
 }
 
 function gradeInfo(score: number) {
-  if (score >= 90) return { grade: "A", color: "border-green-400 text-green-400 bg-green-400/10", label: "高质量", motto: "代码非常干净，无关键隐患。" };
-  if (score >= 75) return { grade: "B", color: "border-cyan-400 text-cyan-400 bg-cyan-400/10", label: "良好品质", motto: "整体结构扎实，有少量改进空间。" };
-  if (score >= 60) return { grade: "C", color: "border-purple-400 text-purple-400 bg-purple-400/10", label: "中等质量", motto: "有轻微问题需修复后可合并。" };
-  if (score >= 40) return { grade: "D", color: "border-yellow-400 text-yellow-400 bg-yellow-400/10", label: "中高风险", motto: "包含较多中度风险，务必重点审查。" };
-  return { grade: "F", color: "border-red-400 text-red-400 bg-red-400/10", label: "禁止合并", motto: "存在严重漏洞或致命逻辑错误，建议打回。" };
+  if (score >= 90) return { grade: "A", color: "border-[#3fb950] text-[#3fb950] bg-[#3fb950]/10", label: "高质量", motto: "代码非常干净，无关键隐患。" };
+  if (score >= 75) return { grade: "B", color: "border-[#58a6ff] text-[#58a6ff] bg-[#58a6ff]/10", label: "良好品质", motto: "整体结构扎实，有少量改进空间。" };
+  if (score >= 60) return { grade: "C", color: "border-[#8957e5] text-[#8957e5] bg-[#8957e5]/10", label: "中等质量", motto: "有轻微问题需修复后可合并。" };
+  if (score >= 40) return { grade: "D", color: "border-[#d29922] text-[#d29922] bg-[#d29922]/10", label: "中高风险", motto: "包含较多中度风险，务必重点审查。" };
+  return { grade: "F", color: "border-[#f85149] text-[#f85149] bg-[#f85149]/10", label: "禁止合并", motto: "存在严重漏洞或致命逻辑错误，建议打回。" };
 }
 
 /* ---- Donut segments ---- */
@@ -90,40 +90,40 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       {/* Grade badge */}
-      <div className="relative flex flex-col items-center justify-between overflow-hidden rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-center shadow-sm">
-        <Award className="pointer-events-none absolute right-4 top-4 h-24 w-24 text-slate-800 opacity-20" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">PR 综合质量评级</span>
+      <div className="relative flex flex-col items-center justify-between overflow-hidden rounded-lg border border-[#30363d] bg-[#161b22] p-6 text-center shadow-sm">
+        <Award className="pointer-events-none absolute right-4 top-4 h-24 w-24 text-[#21262d] opacity-20" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#8b949e]">PR 综合质量评级</span>
         <div className={`my-4 flex h-28 w-28 flex-col items-center justify-center rounded-full border-4 font-mono select-none ${grade.color}`}>
           <span className="text-5xl font-black">{grade.grade}</span>
           <span className="mt-0.5 text-[10px] font-extrabold uppercase tracking-widest">{score} / 100</span>
         </div>
         <div className="z-10 space-y-1.5">
-          <h4 className="text-base font-bold text-slate-100">{grade.label}</h4>
-          <p className="max-w-xs text-xs text-slate-500">{grade.motto}</p>
+          <h4 className="text-base font-bold text-[#c9d1d9]">{grade.label}</h4>
+          <p className="max-w-xs text-xs text-[#8b949e]">{grade.motto}</p>
         </div>
       </div>
 
       {/* Severity donut */}
-      <div className="flex flex-col justify-between rounded-lg border border-slate-800 bg-slate-900/60 p-6 shadow-sm">
-        <div className="mb-3 flex items-center justify-between border-b border-slate-800 pb-2">
-          <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            <AlertTriangle className="h-3.5 w-3.5 text-red-400" />风险严重度统计
+      <div className="flex flex-col justify-between rounded-lg border border-[#30363d] bg-[#161b22] p-6 shadow-sm">
+        <div className="mb-3 flex items-center justify-between border-b border-[#30363d] pb-2">
+          <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8b949e]">
+            <AlertTriangle className="h-3.5 w-3.5 text-[#f85149]" />风险严重度统计
           </h3>
           {activeFilter?.type === "severity" && (
-            <button onClick={() => onFilterChange?.("clear", null)} className="text-[10px] font-bold text-cyan-400 hover:underline">[清除筛选]</button>
+            <button onClick={() => onFilterChange?.("clear", null)} className="text-[10px] font-bold text-[#58a6ff] hover:underline">[清除筛选]</button>
           )}
         </div>
 
         {!hasRisks ? (
-          <div className="flex flex-1 flex-col items-center justify-center space-y-2 py-6 text-slate-500">
-            <CheckCircle className="h-10 w-10 text-green-400" />
+          <div className="flex flex-1 flex-col items-center justify-center space-y-2 py-6 text-[#8b949e]">
+            <CheckCircle className="h-10 w-10 text-[#3fb950]" />
             <p className="text-xs font-semibold">零高危隐患，代码状态极为优秀！</p>
           </div>
         ) : (
           <div className="flex flex-1 items-center justify-around gap-2">
             <div className="relative h-28 w-28 shrink-0">
               <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#1e293b" strokeWidth="12" />
+                <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#21262d" strokeWidth="12" />
                 {donutSegments.map((seg) => (
                   <circle
                     key={seg.key}
@@ -136,12 +136,13 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                     strokeLinecap="round"
                     className="cursor-pointer transition-all duration-500 hover:stroke-[14px]"
                     onClick={() => onFilterChange?.("severity", seg.key)}
+                    aria-label={`按${seg.label}级别筛选`}
                   />
                 ))}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center font-mono">
-                <span className="text-lg font-black text-slate-100">{stats.riskCount}</span>
-                <span className="text-[8px] font-bold uppercase tracking-widest text-slate-500">风险项</span>
+                <span className="text-lg font-black text-[#c9d1d9]">{stats.riskCount}</span>
+                <span className="text-[8px] font-bold uppercase tracking-widest text-[#8b949e]">风险项</span>
               </div>
             </div>
 
@@ -153,15 +154,16 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                     key={seg.key}
                     onClick={() => onFilterChange?.("severity", seg.key)}
                     className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left transition-all ${
-                      isActive ? "bg-slate-800 font-bold" : "hover:bg-slate-800/50"
+                      isActive ? "bg-[#21262d] font-bold" : "hover:bg-[#21262d]"
                     }`}
                     style={{ borderLeft: isActive ? `2px solid ${seg.color}` : "2px solid transparent" }}
+                    aria-label={`按${seg.label}级别筛选`}
                   >
-                    <span className="flex items-center gap-1.5 font-medium text-slate-300">
+                    <span className="flex items-center gap-1.5 font-medium text-[#c9d1d9]">
                       <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: seg.color }} />
                       {seg.label}
                     </span>
-                    <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-400">{sevCounts[seg.key]}</span>
+                    <span className="rounded bg-[#21262d] px-1.5 py-0.5 font-mono text-[10px] text-[#8b949e]">{sevCounts[seg.key]}</span>
                   </button>
                 );
               })}
@@ -171,13 +173,13 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
       </div>
 
       {/* Category bars */}
-      <div className="flex flex-col justify-between rounded-lg border border-slate-800 bg-slate-900/60 p-6 shadow-sm">
-        <div className="mb-3 flex items-center justify-between border-b border-slate-800 pb-2">
-          <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            <Zap className="h-3.5 w-3.5 text-yellow-400" />风险类别分布
+      <div className="flex flex-col justify-between rounded-lg border border-[#30363d] bg-[#161b22] p-6 shadow-sm">
+        <div className="mb-3 flex items-center justify-between border-b border-[#30363d] pb-2">
+          <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8b949e]">
+            <Zap className="h-3.5 w-3.5 text-[#d29922]" />风险类别分布
           </h3>
           {activeFilter?.type === "category" && (
-            <button onClick={() => onFilterChange?.("clear", null)} className="text-[10px] font-bold text-cyan-400 hover:underline">[清除筛选]</button>
+            <button onClick={() => onFilterChange?.("clear", null)} className="text-[10px] font-bold text-[#58a6ff] hover:underline">[清除筛选]</button>
           )}
         </div>
 
@@ -190,18 +192,20 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
               <div
                 key={cat.key}
                 onClick={() => onFilterChange?.("category", cat.key)}
+                role="button"
+                aria-label={`按${cat.label}类别筛选`}
                 className={`cursor-pointer rounded px-2 py-1 border border-transparent transition ${
-                  isActive ? "border-cyan-400/50 bg-slate-800" : "hover:bg-slate-800/50"
+                  isActive ? "border-[#58a6ff]/50 bg-[#21262d]" : "hover:bg-[#21262d]"
                 }`}
               >
                 <div className="mb-1 flex items-center justify-between text-[10px]">
-                  <span className="flex items-center gap-1 font-semibold text-slate-300">
+                  <span className="flex items-center gap-1 font-semibold text-[#c9d1d9]">
                     <cat.icon className={`h-3.5 w-3.5 ${cat.textColor}`} />
                     {cat.label}
                   </span>
-                  <span className="font-mono font-bold text-slate-500">{count} 项</span>
+                  <span className="font-mono font-bold text-[#8b949e]">{count} 项</span>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#21262d]">
                   <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: cat.color }} />
                 </div>
               </div>

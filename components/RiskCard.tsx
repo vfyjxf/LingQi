@@ -55,8 +55,8 @@ export default function RiskCard({
     <div
       className={`rounded-md border shadow-sm overflow-hidden transition-all duration-200 ${
         highlighted
-          ? "border-cyan-400/50 shadow-cyan-300/10"
-          : "border-slate-800 bg-slate-900/60 hover:border-slate-600"
+          ? "border-[#58a6ff]/50 shadow-[#58a6ff]/10"
+          : "border-[#30363d] bg-[#161b22] hover:border-[#8c959f]"
       }`}
     >
       {/* Card header — clickable */}
@@ -64,6 +64,8 @@ export default function RiskCard({
         type="button"
         className="flex w-full items-start gap-4 p-5 text-left cursor-pointer select-none"
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        aria-label={risk.title}
       >
         <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${sev.iconBg}`}>
           <sev.icon className="h-5 w-5" />
@@ -74,40 +76,40 @@ export default function RiskCard({
             <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${sev.badge}`}>
               {sev.label}
             </span>
-            <span className="rounded-full border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
+            <span className="rounded-full border border-[#30363d] bg-[#21262d] px-2 py-0.5 text-[10px] font-semibold text-[#8b949e]">
               {categoryLabel[risk.category]}
             </span>
-            <span className="rounded border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 font-mono text-[10px] text-cyan-400">
+            <span className="rounded border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 font-mono text-[10px] text-[#58a6ff]">
               {risk.file}{risk.line ? `:${risk.line}` : ""}
             </span>
           </div>
 
-          <h4 className="text-sm font-bold leading-snug text-slate-100">{risk.title}</h4>
+          <h4 className="text-sm font-bold leading-snug text-[#c9d1d9]">{risk.title}</h4>
         </div>
 
-        <div className="p-1 text-slate-500">
+        <div className="p-1 text-[#8b949e]">
           {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
         </div>
       </button>
 
       {/* Expanded detail */}
       {expanded && (
-        <div className="space-y-4 border-t border-slate-800 px-5 pb-5 pt-1 text-xs">
+        <div className="space-y-4 border-t border-[#30363d] px-5 pb-5 pt-1 text-xs">
           {/* Impact */}
-          <p className="leading-relaxed text-slate-400">{risk.impact}</p>
+          <p className="leading-relaxed text-[#8b949e]">{risk.impact}</p>
 
           {/* Evidence */}
           <div className="space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">证据</span>
-            <p className="leading-relaxed text-slate-400">{risk.evidence}</p>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#8b949e]">证据</span>
+            <p className="leading-relaxed text-[#8b949e]">{risk.evidence}</p>
           </div>
 
           {/* Suggestion */}
           {suggestion && (
             <div className="space-y-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">修复建议</span>
-              <p className="leading-relaxed text-slate-300">{suggestion.recommendation}</p>
-              <p className="text-[10px] leading-relaxed text-slate-500">{suggestion.rationale}</p>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#8b949e]">修复建议</span>
+              <p className="leading-relaxed text-[#c9d1d9]">{suggestion.recommendation}</p>
+              <p className="text-[10px] leading-relaxed text-[#8b949e]">{suggestion.rationale}</p>
             </div>
           )}
 

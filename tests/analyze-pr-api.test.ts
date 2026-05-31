@@ -4,7 +4,6 @@ import {
   AnalyzePrInputError,
   AnalyzePrUpstreamError
 } from "@/lib/api/analyze-pr";
-import type { AiProvider } from "@/lib/ai/provider";
 import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
 import { defaultLingQiConfig } from "@/lib/config/default-config";
 import type { GitHubPrData } from "@/lib/github/github-types";
@@ -135,15 +134,27 @@ describe("analyzePullRequest", () => {
   });
 
   test("正常请求会调用依赖并返回报告和上下文摘要", async () => {
-    const provider: AiProvider = {
-      analyze: vi.fn().mockResolvedValue(report)
-    };
     const dependencies = {
       loadConfig: vi.fn().mockReturnValue(defaultLingQiConfig),
       fetchGitHubPrData: vi.fn().mockResolvedValue(githubData),
       buildPrAnalysisContext: vi.fn().mockReturnValue(context),
-      createAiProviderFromConfig: vi.fn().mockReturnValue(provider),
-      analyzePrContext: vi.fn().mockResolvedValue(report)
+      createAiProviderFromConfig: vi.fn(),
+      runReviewers: vi.fn().mockResolvedValue({
+        report,
+        reviewerAnalyses: [
+          {
+            reviewerId: "fast-reviewer",
+            reviewerName: "快速上下文 reviewer",
+            role: "fast",
+            model: "deepseek-v4-flash",
+            trigger: "always",
+            summary: "本次 PR 更新 session refresh 逻辑。",
+            riskCount: 1,
+            suggestionCount: 1,
+            limitations: ["未读取完整仓库"]
+          }
+        ]
+      })
     };
 
     const result = await analyzePullRequest({
@@ -170,19 +181,30 @@ describe("analyzePullRequest", () => {
         contextConfig: defaultLingQiConfig.context
       }
     );
-    expect(dependencies.createAiProviderFromConfig).toHaveBeenCalledWith({
-      ai: dependencies.loadConfig().ai,
+    expect(dependencies.runReviewers).toHaveBeenCalledWith({
+      config: defaultLingQiConfig,
+      context,
       env: {
         GITHUB_TOKEN: "github-token",
         DEEPSEEK_API_KEY: "deepseek-key"
-      }
+      },
+      createAiProviderFromConfig: dependencies.createAiProviderFromConfig
     });
-    expect(dependencies.analyzePrContext).toHaveBeenCalledWith(
-      context,
-      provider
-    );
     expect(result).toEqual({
       report,
+      reviewerAnalyses: [
+        {
+          reviewerId: "fast-reviewer",
+          reviewerName: "快速上下文 reviewer",
+          role: "fast",
+          model: "deepseek-v4-flash",
+          trigger: "always",
+          summary: "本次 PR 更新 session refresh 逻辑。",
+          riskCount: 1,
+          suggestionCount: 1,
+          limitations: ["未读取完整仓库"]
+        }
+      ],
       reviewDraft: {
         comments: [
           {
@@ -298,9 +320,6 @@ describe("analyzePullRequest", () => {
   });
 
   test("用户补充审查要求会传入上下文构建", async () => {
-    const provider: AiProvider = {
-      analyze: vi.fn().mockResolvedValue(report)
-    };
     const dependencies = {
       loadConfig: vi.fn().mockReturnValue(defaultLingQiConfig),
       fetchGitHubPrData: vi.fn().mockResolvedValue(githubData),
@@ -308,8 +327,11 @@ describe("analyzePullRequest", () => {
         ...context,
         userPrompt: "重点检查并发安全"
       }),
-      createAiProviderFromConfig: vi.fn().mockReturnValue(provider),
-      analyzePrContext: vi.fn().mockResolvedValue(report)
+      createAiProviderFromConfig: vi.fn(),
+      runReviewers: vi.fn().mockResolvedValue({
+        report,
+        reviewerAnalyses: []
+      })
     };
 
     await analyzePullRequest({

@@ -5,6 +5,8 @@ export const ReviewLanguageSchema = z.enum(["zh-CN", "en-US"]);
 export const ReviewToneSchema = z.enum(["direct", "friendly"]);
 export const ReviewConfidenceSchema = z.enum(["high", "medium", "low"]);
 export const ReviewPriorityConfigSchema = z.enum(["high", "medium", "low"]);
+export const ReviewerRoleSchema = z.enum(["fast", "expert", "custom"]);
+export const ReviewerTriggerSchema = z.enum(["always", "high-risk", "manual"]);
 
 export const ReviewProfileGroupSchema = z.object({
   id: z.string().trim().min(1),
@@ -37,6 +39,18 @@ export const ReviewProfileSchema = z.object({
   })
 });
 
+export const ReviewerConfigSchema = z.object({
+  id: z.string().trim().min(1),
+  name: z.string().trim().min(1),
+  role: ReviewerRoleSchema,
+  enabled: z.boolean(),
+  provider: AiProviderNameSchema,
+  model: z.string().trim().min(1),
+  apiKeyEnv: z.string().trim().min(1),
+  trigger: ReviewerTriggerSchema,
+  focus: z.array(z.string().trim().min(1)).default([])
+});
+
 export const LingQiConfigSchema = z.object({
   ai: z.object({
     provider: AiProviderNameSchema,
@@ -47,6 +61,7 @@ export const LingQiConfigSchema = z.object({
     timeoutMs: z.number().int().min(5000).max(180000),
     strictSchema: z.boolean()
   }),
+  reviewers: z.array(ReviewerConfigSchema).default([]),
   review: z.object({
     language: ReviewLanguageSchema,
     tone: ReviewToneSchema,
@@ -76,6 +91,9 @@ export const LingQiConfigSchema = z.object({
 export type LingQiConfig = z.infer<typeof LingQiConfigSchema>;
 export type AiProviderName = z.infer<typeof AiProviderNameSchema>;
 export type AiModelConfig = LingQiConfig["ai"];
+export type ReviewerConfig = z.infer<typeof ReviewerConfigSchema>;
+export type ReviewerRole = z.infer<typeof ReviewerRoleSchema>;
+export type ReviewerTrigger = z.infer<typeof ReviewerTriggerSchema>;
 export type ReviewPriorityConfig = z.infer<typeof ReviewPriorityConfigSchema>;
 export type ReviewProfile = z.infer<typeof ReviewProfileSchema>;
 export type ReviewProfileGroup = z.infer<typeof ReviewProfileGroupSchema>;

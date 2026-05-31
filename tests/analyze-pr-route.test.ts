@@ -36,6 +36,19 @@ const result: AnalyzePullRequestResult = {
       modelStrategy: "DeepSeek 结构化输出"
     }
   },
+  reviewerAnalyses: [
+    {
+      reviewerId: "fast-reviewer",
+      reviewerName: "快速上下文 reviewer",
+      role: "fast",
+      model: "deepseek-v4-flash",
+      trigger: "always",
+      summary: "本次 PR 更新 session refresh 逻辑。",
+      riskCount: 0,
+      suggestionCount: 0,
+      limitations: ["未读取完整仓库"]
+    }
+  ],
   reviewDraft: {
     comments: [],
     publishableCount: 0,

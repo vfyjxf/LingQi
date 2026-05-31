@@ -1,6 +1,10 @@
 import { createAiProviderFromConfig } from "@/lib/ai/provider-factory";
 import type { AiProvider } from "@/lib/ai/provider";
-import { analyzePrContext } from "@/lib/analysis/analyzer";
+import {
+  runReviewers,
+  type ReviewerAnalysis,
+  type RunReviewersResult
+} from "@/lib/ai/reviewer-runner";
 import {
   buildContextAuditSummary,
   type ContextAuditSummary
@@ -24,6 +28,10 @@ import { buildReviewSubmitPlan } from "@/lib/review-draft/build-submit-payload";
 import type { ReviewDraft, ReviewSubmitPlan } from "@/lib/review-draft/schema";
 
 type EnvLike = Record<string, string | undefined>;
+type CreateAiProviderFn = (options: {
+  ai: AiModelConfig;
+  env: EnvLike;
+}) => AiProvider;
 
 type AnalyzePullRequestDependencies = {
   loadConfig: () => LingQiConfig;
@@ -39,14 +47,13 @@ type AnalyzePullRequestDependencies = {
       userPrompt?: string;
     }
   ) => PrAnalysisContext;
-  createAiProviderFromConfig: (options: {
-    ai: AiModelConfig;
+  createAiProviderFromConfig: CreateAiProviderFn;
+  runReviewers: (options: {
+    config: LingQiConfig;
+    context: PrAnalysisContext;
     env: EnvLike;
-  }) => AiProvider;
-  analyzePrContext: (
-    context: PrAnalysisContext,
-    provider: AiProvider
-  ) => Promise<AiReviewReport>;
+    createAiProviderFromConfig: CreateAiProviderFn;
+  }) => Promise<RunReviewersResult>;
 };
 
 export type AnalyzePullRequestOptions = {
@@ -58,6 +65,7 @@ export type AnalyzePullRequestOptions = {
 
 export type AnalyzePullRequestResult = {
   report: AiReviewReport;
+  reviewerAnalyses: ReviewerAnalysis[];
   reviewDraft: ReviewDraft;
   reviewSubmitPlan: ReviewSubmitPlan;
   context: {
@@ -108,7 +116,7 @@ export async function analyzePullRequest({
     fetchGitHubPrData,
     buildPrAnalysisContext,
     createAiProviderFromConfig,
-    analyzePrContext,
+    runReviewers,
     ...dependencies
   };
 
@@ -127,11 +135,12 @@ export async function analyzePullRequest({
       contextConfig: config.context,
       ...(userPromptText ? { userPrompt: userPromptText } : {})
     });
-    const provider = deps.createAiProviderFromConfig({
-      ai: config.ai,
-      env
+    const { report, reviewerAnalyses } = await deps.runReviewers({
+      config,
+      context,
+      env,
+      createAiProviderFromConfig: deps.createAiProviderFromConfig
     });
-    const report = await deps.analyzePrContext(context, provider);
     const reviewDraft = buildReviewDraft(report, context);
     const reviewSubmitPlan = buildReviewSubmitPlan({
       owner: parsedPr.owner,
@@ -142,6 +151,7 @@ export async function analyzePullRequest({
 
     return {
       report,
+      reviewerAnalyses,
       reviewDraft,
       reviewSubmitPlan,
       context: {

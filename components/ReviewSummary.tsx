@@ -68,7 +68,7 @@ export default function ReviewSummary({ summary, generalSuggestions, meta }: Rev
       </div>
 
       {/* Description + modules grid */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 items-start">
         <div className="space-y-4 rounded-md border border-[#30363d] bg-[#161b22] p-6 shadow-sm md:col-span-2">
           <h3 className="flex items-center gap-2 border-b border-[#30363d] pb-3 text-sm font-semibold text-[#c9d1d9]">
             <Sparkles className="h-4 w-4 text-[#58a6ff]" />
@@ -89,7 +89,7 @@ export default function ReviewSummary({ summary, generalSuggestions, meta }: Rev
               summary.changedModules.map((mod, i) => (
                 <div key={i} className="flex items-center gap-2 rounded border border-[#30363d] bg-[#21262d] px-3 py-2">
                   <FileText className="h-3.5 w-3.5 shrink-0 text-[#58a6ff]" />
-                  <span className="font-mono text-xs text-[#c9d1d9]">{mod}</span>
+                  <span className="font-mono text-xs text-[#c9d1d9] break-all">{mod}</span>
                 </div>
               ))
             ) : (
@@ -117,7 +117,7 @@ export default function ReviewSummary({ summary, generalSuggestions, meta }: Rev
             <FolderOpen className="h-4 w-4 text-[#3fb950]" />
             架构与质量改进建议
           </h3>
-          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 items-start">
             {generalSuggestions.map((suggestion, idx) => (
               <li key={idx} className="group flex items-start gap-3 rounded-md border border-[#30363d] bg-[#21262d] p-3 transition-all hover:border-[#58a6ff]/50 hover:bg-[#1c2128]">
                 <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#58a6ff]/10 text-xs font-semibold text-[#58a6ff] group-hover:bg-[#58a6ff] group-hover:text-[#0d1117] transition-all">

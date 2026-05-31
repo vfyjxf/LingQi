@@ -3,6 +3,7 @@ import {
   AiReviewReportSchema,
   parseAiReviewReport
 } from "@/lib/report/schema";
+import { makeValidReport } from "@/tests/fixtures/report-fixtures";
 
 const validReport = {
   summary: {
@@ -198,5 +199,42 @@ describe("AiReviewReportSchema", () => {
     expect(
       parsed.groupAnalyses[0].reviewSuggestions[0].line
     ).toBeUndefined();
+  });
+
+  test("接受包含 7 个维度评分的合法报告", () => {
+    const report = makeValidReport();
+    const parsed = AiReviewReportSchema.parse(report);
+    expect(parsed.dimensionScores).toHaveLength(7);
+  });
+
+  test("拒绝只有 6 个维度评分的报告", () => {
+    const report = makeValidReport({
+      dimensionScores: makeValidReport().dimensionScores.slice(0, 6)
+    });
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
+  });
+
+  test("拒绝维度评分超出 0-100 范围 (>100)", () => {
+    const report = makeValidReport();
+    report.dimensionScores[0].score = 101;
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
+  });
+
+  test("拒绝维度评分为负数", () => {
+    const report = makeValidReport();
+    report.dimensionScores[0].score = -1;
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
+  });
+
+  test("拒绝维度评分缺少证据", () => {
+    const report = makeValidReport();
+    report.dimensionScores[0].evidence = "";
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
+  });
+
+  test("拒绝非法的严重程度值", () => {
+    const report = makeValidReport();
+    report.dimensionScores[0].severity = "critical" as never;
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
   });
 });

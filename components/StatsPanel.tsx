@@ -141,14 +141,6 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                 <RadialBar
                   dataKey="value"
                   background={{ fill: "#21262d" }}
-                  cursor="pointer"
-                  onClick={(entry: any) => {
-                    if (activeFilter?.type === "severity" && activeFilter?.value === entry.payload.key) {
-                      onFilterChange?.("clear", null);
-                    } else {
-                      onFilterChange?.("severity", entry.payload.key);
-                    }
-                  }}
                 >
                   {severityRadialData.map((seg) => {
                     const isDimmed = activeFilter?.type === "severity" && activeFilter?.value !== seg.key;
@@ -167,7 +159,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                     border: "1px solid #30363d",
                     borderRadius: "6px",
                     fontSize: "12px",
-                    color: "#c9d1d9",
+                    color: "#ffffff",
                   }}
                   labelFormatter={(_label, payload) => payload?.[0]?.payload?.name ?? ""}
                   formatter={(value, _name, props) => {

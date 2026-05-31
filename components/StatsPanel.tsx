@@ -163,7 +163,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                 </RadialBar>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1c2128",
+                    backgroundColor: "#21262d",
                     border: "1px solid #30363d",
                     borderRadius: "6px",
                     fontSize: "12px",
@@ -205,35 +205,38 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <RadarChart cx="50%" cy="50%" data={radarData} margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
-              <PolarGrid stroke="#30363d" />
+              <PolarGrid stroke="#21262d" gridType="polygon" />
               <PolarAngleAxis
                 dataKey="category"
                 tick={(props: any) => {
-                  const { x, y, payload } = props;
+                  const { x, y, payload, cx: centerX, cy: centerY } = props;
                   const cat = categoryDefs.find((d) => d.label === payload.value);
                   const isActive = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
                   return (
-                    <text
-                      x={x}
-                      y={y}
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fill={isActive ? "#58a6ff" : "#8b949e"}
-                      fontSize={12}
-                      fontWeight={isActive ? 700 : 400}
-                      cursor="pointer"
-                      onClick={() => {
-                        if (cat) {
-                          if (isActive) {
-                            onFilterChange?.("clear", null);
-                          } else {
-                            onFilterChange?.("category", cat.key);
+                    <g>
+                      <line x1={centerX} y1={centerY} x2={x} y2={y} stroke="#21262d" strokeWidth={1} />
+                      <text
+                        x={x}
+                        y={y}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fill={isActive ? "#58a6ff" : "#8b949e"}
+                        fontSize={12}
+                        fontWeight={isActive ? 700 : 400}
+                        cursor="pointer"
+                        onClick={() => {
+                          if (cat) {
+                            if (isActive) {
+                              onFilterChange?.("clear", null);
+                            } else {
+                              onFilterChange?.("category", cat.key);
+                            }
                           }
-                        }
-                      }}
-                    >
-                      {payload.value}
-                    </text>
+                        }}
+                      >
+                        {payload.value}
+                      </text>
+                    </g>
                   );
                 }}
               />
@@ -274,7 +277,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#1c2128",
+                  backgroundColor: "#21262d",
                   border: "1px solid #30363d",
                   borderRadius: "6px",
                   fontSize: "12px",

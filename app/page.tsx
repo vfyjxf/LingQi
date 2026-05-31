@@ -24,6 +24,7 @@ import {
   RefreshCw,
   BarChart3,
   ShieldAlert,
+  Sparkles,
   User,
   FileText,
   FolderOpen,

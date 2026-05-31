@@ -203,8 +203,8 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
             <p className="text-xs font-semibold">零高危隐患，代码状态极为优秀！</p>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <RadarChart cx="50%" cy="50%" data={radarData} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+          <ResponsiveContainer width="100%" height={280}>
+            <RadarChart cx="50%" cy="50%" data={radarData} margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <PolarGrid stroke="#30363d" />
               <PolarAngleAxis
                 dataKey="category"

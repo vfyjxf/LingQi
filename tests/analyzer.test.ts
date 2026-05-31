@@ -54,6 +54,44 @@ const validReport: AiReviewReport = {
   }
 };
 
+const groupedContext: PrAnalysisContext = {
+  ...context,
+  contextBundle: {
+    pr: context.pr,
+    stats: context.stats,
+    groups: [
+      {
+        id: "admin",
+        name: "后台权限",
+        priority: "high",
+        reviewPrompts: ["确认后台入口权限"],
+        files: [
+          {
+            filename: "app/admin/page.tsx",
+            status: "modified",
+            additions: 20,
+            deletions: 4,
+            changes: 24,
+            patch: "@@ -1 +1 @@\n+export function AdminPage() {}",
+            includedInPrompt: true,
+            truncated: false,
+            riskHints: [],
+            matchedBy: ["path"],
+            matchedRules: ["path:app/admin/**"]
+          }
+        ],
+        budget: {
+          maxFiles: 5,
+          maxPatchCharsPerFile: 12000,
+          includedFiles: 1,
+          omittedFiles: 0
+        }
+      }
+    ],
+    limitations: []
+  }
+};
+
 describe("analyzePrContext", () => {
   test("调用传入的 provider，并返回通过 schema 校验的报告", async () => {
     const provider: AiProvider = {
@@ -72,5 +110,15 @@ describe("analyzePrContext", () => {
     };
 
     await expect(analyzePrContext(context, provider)).rejects.toThrow();
+  });
+
+  test("provider 返回不符合分组契约的报告时抛出错误", async () => {
+    const provider: AiProvider = {
+      analyze: vi.fn().mockResolvedValue(validReport)
+    };
+
+    await expect(analyzePrContext(groupedContext, provider)).rejects.toThrow(
+      "AI 分组分析缺少配置中的分组：admin"
+    );
   });
 });

@@ -161,7 +161,9 @@ describe("createVercelAiProvider", () => {
     expect(prompt).toContain("确认 webhook 鉴权");
     expect(prompt).toContain("不要编造未提供的上下文");
     expect(prompt).toContain("必须输出 groupAnalyses");
+    expect(prompt).toContain("每个输入 group 必须有且仅有一个对应的 groupAnalyses 项");
     expect(prompt).toContain("不能自造 groupId、groupName 或 priority");
+    expect(prompt).toContain("不能跨组引用其他文件");
     expect(prompt).toContain(
       "全局 risks 和 suggestions 应从分组结果中挑选最高价值项"
     );

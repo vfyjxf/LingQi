@@ -176,6 +176,10 @@ describe("HomePage", () => {
       screen.getByPlaceholderText("https://github.com/owner/repo/pull/123"),
       "https://github.com/octocat/hello-world/pull/42"
     );
+    await user.type(
+      screen.getByPlaceholderText(/重点检查并发安全/),
+      "重点检查缓存一致性"
+    );
     await user.click(screen.getByRole("button", { name: "分析" }));
 
     await waitFor(() => {
@@ -186,7 +190,8 @@ describe("HomePage", () => {
       expect.objectContaining({
         body: JSON.stringify({
           prUrl: "https://github.com/octocat/hello-world/pull/42",
-          reviewerIds: ["fast-reviewer"]
+          reviewerIds: ["fast-reviewer"],
+          userPrompt: "重点检查缓存一致性"
         })
       })
     );
@@ -201,5 +206,7 @@ describe("HomePage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("AI 风险评论")).toBeInTheDocument();
     expect(screen.getByText("刷新 token 前需要确认用户状态。")).toBeInTheDocument();
+    expect(screen.getByText("用户补充审查要求")).toBeInTheDocument();
+    expect(screen.getByText("重点检查缓存一致性")).toBeInTheDocument();
   });
 });

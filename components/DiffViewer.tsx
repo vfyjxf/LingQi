@@ -25,6 +25,7 @@ type DiffViewerProps = {
     line?: number;
   } | null;
   inlineReviews?: InlineReviewItem[];
+  reviewPrompt?: string;
   onAddComment?: (item: InlineReviewItem) => void;
   onPublishReview?: (item: InlineReviewItem) => void;
 };
@@ -78,6 +79,7 @@ export default function DiffViewer({
   maxHeight = "600px",
   selectedTarget,
   inlineReviews = [],
+  reviewPrompt,
   onAddComment,
   onPublishReview,
 }: DiffViewerProps) {
@@ -120,6 +122,17 @@ export default function DiffViewer({
           <span className="text-[#f85149]">-{deletedCount}</span>
         </div>
       </div>
+
+      {reviewPrompt?.trim() && (
+        <div className="border-b border-[#30363d] bg-[#0d1117] px-4 py-3">
+          <div className="text-xs font-semibold text-[#58a6ff]">
+            用户补充审查要求
+          </div>
+          <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-[#c9d1d9]">
+            {reviewPrompt}
+          </p>
+        </div>
+      )}
 
       {/* Diff content */}
       <div

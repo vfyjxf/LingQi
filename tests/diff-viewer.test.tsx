@@ -125,6 +125,18 @@ describe("DiffViewer", () => {
     expect(screen.getByText("证据：token 未确认。")).toBeInTheDocument();
   });
 
+  test("展示用户补充审查要求", () => {
+    render(
+      <DiffViewer
+        diffText={mockDiff}
+        reviewPrompt="重点检查缓存一致性"
+      />
+    );
+
+    expect(screen.getByText("用户补充审查要求")).toBeInTheDocument();
+    expect(screen.getByText("重点检查缓存一致性")).toBeInTheDocument();
+  });
+
   test("inline review 长内容不使用裁剪样式", () => {
     const longBody =
       "建议：这里是一段很长的 Review 评论，需要完整展示给 reviewer 阅读，不能因为卡片宽度、pre 容器或标题区域而被截断。";

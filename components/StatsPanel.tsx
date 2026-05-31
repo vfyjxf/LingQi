@@ -54,9 +54,12 @@ const severitySegments = [
 
 const categoryDefs = [
   { key: "security", label: "安全漏洞", icon: ShieldCheck, color: "#dc2626", textColor: "text-red-400" },
+  { key: "data", label: "数据风险", icon: AlertTriangle, color: "#ea580c", textColor: "text-orange-400" },
+  { key: "stability", label: "稳定性", icon: AlertTriangle, color: "#d29922", textColor: "text-yellow-400" },
   { key: "performance", label: "性能瓶颈", icon: Zap, color: "#ca8a04", textColor: "text-yellow-400" },
-  { key: "logic", label: "编码逻辑", icon: AlertTriangle, color: "#7c3aed", textColor: "text-purple-400" },
-  { key: "style", label: "代码规范", icon: Code2, color: "#6b7280", textColor: "text-slate-400" },
+  { key: "api", label: "API 设计", icon: Code2, color: "#2563eb", textColor: "text-blue-400" },
+  { key: "testing", label: "测试覆盖", icon: ShieldCheck, color: "#7c3aed", textColor: "text-purple-400" },
+  { key: "maintainability", label: "可维护性", icon: Code2, color: "#6b7280", textColor: "text-slate-400" },
 ];
 
 export default function StatsPanel({ stats, activeFilter, onFilterChange }: StatsPanelProps) {
@@ -160,16 +163,17 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                 </RadialBar>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#161b22",
+                    backgroundColor: "#1c2128",
                     border: "1px solid #30363d",
                     borderRadius: "6px",
                     fontSize: "12px",
                     color: "#c9d1d9",
                   }}
-                  formatter={(value, name) => {
+                  labelFormatter={(_label, payload) => payload?.[0]?.payload?.name ?? ""}
+                  formatter={(value, _name, props) => {
                     const total = severityRadialData.reduce((sum, d) => sum + d.value, 0) || 1;
                     const pct = ((Number(value) / total) * 100).toFixed(1);
-                    return [`${value} 项 (${pct}%)`, name];
+                    return [`${value} 项 (${pct}%)`, (props as any)?.payload?.name ?? ""];
                   }}
                 />
               </RadialBarChart>
@@ -270,7 +274,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#161b22",
+                  backgroundColor: "#1c2128",
                   border: "1px solid #30363d",
                   borderRadius: "6px",
                   fontSize: "12px",

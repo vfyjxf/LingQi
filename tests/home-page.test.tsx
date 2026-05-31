@@ -10,9 +10,30 @@ describe("HomePage", () => {
 
   test("完成态展示非空 diff 内容", async () => {
     const user = userEvent.setup();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            reviewers: [
+              {
+                id: "fast-reviewer",
+                name: "快速上下文 reviewer",
+                role: "fast",
+                provider: "deepseek",
+                model: "deepseek-v4-flash",
+                trigger: "always",
+                focus: ["summary", "risk"]
+              }
+            ]
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" }
+          }
+        )
+      )
+      .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
             report: {
@@ -142,11 +163,15 @@ describe("HomePage", () => {
             headers: { "content-type": "application/json" }
           }
         )
-      )
-    );
+      );
+    vi.stubGlobal("fetch", fetchMock);
 
     render(<HomePage />);
 
+    await waitFor(() => {
+      expect(screen.getByText("选择 AI reviewer")).toBeInTheDocument();
+    });
+    await user.click(screen.getByLabelText(/快速上下文 reviewer/));
     await user.type(
       screen.getByPlaceholderText("https://github.com/owner/repo/pull/123"),
       "https://github.com/octocat/hello-world/pull/42"
@@ -156,6 +181,15 @@ describe("HomePage", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /核心隐患审计/ })).toBeEnabled();
     });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/analyze-pr",
+      expect.objectContaining({
+        body: JSON.stringify({
+          prUrl: "https://github.com/octocat/hello-world/pull/42",
+          reviewerIds: ["fast-reviewer"]
+        })
+      })
+    );
     expect(screen.getByText("多模型 reviewer")).toBeInTheDocument();
     expect(screen.getByText("快速上下文 reviewer")).toBeInTheDocument();
     expect(screen.getByText("deepseek-v4-flash")).toBeInTheDocument();

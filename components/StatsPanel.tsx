@@ -212,12 +212,19 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                   const { x, y, payload, cx: centerX, cy: centerY } = props;
                   const cat = categoryDefs.find((d) => d.label === payload.value);
                   const isActive = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
+                  // push label outward along radial direction
+                  const dx = x - centerX;
+                  const dy = y - centerY;
+                  const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                  const offset = 24;
+                  const lx = x + (dx / dist) * offset;
+                  const ly = y + (dy / dist) * offset;
                   return (
                     <g>
                       <line x1={centerX} y1={centerY} x2={x} y2={y} stroke="#30363d" strokeWidth={1} />
                       <text
-                        x={x}
-                        y={y}
+                        x={lx}
+                        y={ly}
                         textAnchor="middle"
                         dominantBaseline="central"
                         fill={isActive ? "#58a6ff" : "#8b949e"}

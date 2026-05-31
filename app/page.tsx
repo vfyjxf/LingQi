@@ -123,6 +123,11 @@ const demoStats: StatsData = {
   majorCount: 1,
   minorCount: 1,
   nitCount: 0,
+  categoryCounts: {
+    security: 1,
+    performance: 1,
+    maintainability: 1,
+  },
 };
 
 const demoError: ReviewError = {

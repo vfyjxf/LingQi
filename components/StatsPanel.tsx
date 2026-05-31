@@ -159,6 +159,13 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                   })}
                 </RadialBar>
                 <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#161b22",
+                    border: "1px solid #30363d",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    color: "#c9d1d9",
+                  }}
                   formatter={(value, name) => {
                     const total = severityRadialData.reduce((sum, d) => sum + d.value, 0) || 1;
                     const pct = ((Number(value) / total) * 100).toFixed(1);
@@ -261,7 +268,16 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                 }}
                 activeDot={{ r: 6, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 2 }}
               />
-              <Tooltip formatter={(value) => [String(value) + " 项", ""]} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#161b22",
+                  border: "1px solid #30363d",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  color: "#c9d1d9",
+                }}
+                formatter={(value) => [String(value) + " 项", ""]}
+              />
             </RadarChart>
           </ResponsiveContainer>
         )}

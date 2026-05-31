@@ -92,10 +92,10 @@ export default function DiffViewer({
   useEffect(() => {
     if (!selectedTarget) return;
 
-    const key = toLocationKey(selectedTarget.path, selectedTarget.line);
+    const key = findBestLocationKey(lines, selectedTarget);
     const target = lineRefs.current[key];
     target?.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [selectedTarget]);
+  }, [lines, selectedTarget]);
 
   if (!diffText.trim()) {
     return (
@@ -136,8 +136,9 @@ export default function DiffViewer({
               expandedReviews={expandedReviews}
               setExpandedReviews={setExpandedReviews}
               setLineRef={(element) => {
-                const key = toLocationKey(line.path, line.newLine);
-                if (key) lineRefs.current[key] = element;
+                for (const key of getLineLocationKeys(line)) {
+                  lineRefs.current[key] = element;
+                }
               }}
               onAddComment={onAddComment}
               onPublishReview={onPublishReview}
@@ -168,9 +169,7 @@ function DiffCodeLine({
   onAddComment?: (item: InlineReviewItem) => void;
   onPublishReview?: (item: InlineReviewItem) => void;
 }) {
-  const isSelected =
-    selectedTarget?.path === line.path &&
-    (!selectedTarget?.line || selectedTarget.line === line.newLine);
+  const isSelected = isSelectedLine(line, selectedTarget);
 
   return (
     <span ref={setLineRef} className="block">
@@ -214,6 +213,23 @@ function DiffCodeLine({
   );
 }
 
+function isSelectedLine(
+  line: DiffLine,
+  selectedTarget?: DiffViewerProps["selectedTarget"]
+) {
+  if (!selectedTarget || selectedTarget.path !== line.path) {
+    return false;
+  }
+
+  if (!selectedTarget.line) {
+    return line.type === "header" && line.content.startsWith("diff --git");
+  }
+
+  return (
+    selectedTarget.line === line.newLine || selectedTarget.line === line.oldLine
+  );
+}
+
 function InlineReviewCard({
   review,
   expanded,
@@ -227,6 +243,20 @@ function InlineReviewCard({
   onAddComment?: (item: InlineReviewItem) => void;
   onPublishReview?: (item: InlineReviewItem) => void;
 }) {
+  const [showCommentBox, setShowCommentBox] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [savedComments, setSavedComments] = useState<string[]>([]);
+
+  function handleSaveComment() {
+    const nextComment = commentText.trim();
+    if (!nextComment) return;
+
+    setSavedComments([...savedComments, nextComment]);
+    setCommentText("");
+    setShowCommentBox(false);
+    onAddComment?.(review);
+  }
+
   return (
     <span className="mx-4 my-2 block overflow-hidden rounded-md border border-[#30363d] bg-[#0d1117] shadow-sm">
       <button
@@ -246,9 +276,7 @@ function InlineReviewCard({
 
       {expanded && (
         <span className="block space-y-3 px-3 py-3 text-xs">
-          <span className="block whitespace-pre-wrap leading-relaxed text-[#c9d1d9]">
-            {review.body}
-          </span>
+          <InlineMarkdown text={review.body} />
           {review.blockedReason && (
             <span className="block rounded-md border border-yellow-400/20 bg-yellow-400/10 px-3 py-2 text-yellow-400">
               {review.blockedReason}
@@ -258,7 +286,7 @@ function InlineReviewCard({
             <button
               type="button"
               className="inline-flex items-center gap-1.5 rounded-md border border-[#30363d] bg-[#161b22] px-3 py-1.5 text-xs font-semibold text-[#c9d1d9] hover:bg-[#21262d] focus-visible:ring-2 focus-visible:ring-cyan-400"
-              onClick={() => onAddComment?.(review)}
+              onClick={() => setShowCommentBox(!showCommentBox)}
             >
               <MessageSquarePlus className="h-3.5 w-3.5" />
               补充 comment
@@ -273,10 +301,81 @@ function InlineReviewCard({
               写入 GitHub Review
             </button>
           </span>
+
+          {showCommentBox && (
+            <span className="block space-y-2 rounded-md border border-[#30363d] bg-[#161b22] p-2">
+              <textarea
+                className="min-h-20 w-full resize-y rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-2 text-xs leading-relaxed text-[#c9d1d9] outline-none placeholder:text-[#57606a] focus:border-[#58a6ff]/50 focus-visible:ring-2 focus-visible:ring-cyan-400"
+                placeholder="补充给 reviewer 的上下文、疑问或修复建议..."
+                value={commentText}
+                onChange={(event) => setCommentText(event.target.value)}
+              />
+              <span className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="rounded-md border border-[#30363d] px-3 py-1.5 text-xs font-semibold text-[#8b949e] hover:bg-[#21262d] focus-visible:ring-2 focus-visible:ring-cyan-400"
+                  onClick={() => {
+                    setCommentText("");
+                    setShowCommentBox(false);
+                  }}
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-[#238636] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:bg-[#21262d] disabled:text-[#57606a] focus-visible:ring-2 focus-visible:ring-cyan-400"
+                  disabled={!commentText.trim()}
+                  onClick={handleSaveComment}
+                >
+                  保存补充
+                </button>
+              </span>
+            </span>
+          )}
+
+          {savedComments.length > 0 && (
+            <span className="block space-y-2">
+              {savedComments.map((comment, index) => (
+                <span
+                  key={`${review.id}-comment-${index}`}
+                  className="block rounded-md border-l-2 border-[#58a6ff] bg-[#58a6ff]/10 px-3 py-2 text-xs leading-relaxed text-[#c9d1d9]"
+                >
+                  {comment}
+                </span>
+              ))}
+            </span>
+          )}
         </span>
       )}
     </span>
   );
+}
+
+function InlineMarkdown({ text }: { text: string }) {
+  return (
+    <span className="block space-y-1.5 whitespace-normal leading-relaxed text-[#c9d1d9]">
+      {text.split("\n").map((line, index) => (
+        <span key={`${index}-${line}`} className="block">
+          {line ? renderMarkdownLine(line) : "\u00a0"}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function renderMarkdownLine(line: string) {
+  const parts = line.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={`${index}-${part}`} className="font-semibold text-[#f0f6fc]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    return <span key={`${index}-${part}`}>{part}</span>;
+  });
 }
 
 function parseDiffLines(diffText: string): DiffLine[] {
@@ -335,6 +434,51 @@ function groupInlineReviews(items: InlineReviewItem[]) {
 function toLocationKey(path?: string, line?: number) {
   if (!path || !line) return "";
   return `${path}:${line}`;
+}
+
+function toOldLocationKey(path?: string, line?: number) {
+  if (!path || !line) return "";
+  return `${path}:old:${line}`;
+}
+
+function toFileLocationKey(path?: string) {
+  if (!path) return "";
+  return `${path}:file`;
+}
+
+function getLineLocationKeys(line: DiffLine): string[] {
+  return [
+    line.type === "header" && line.content.startsWith("diff --git")
+      ? toFileLocationKey(line.path)
+      : "",
+    toLocationKey(line.path, line.newLine),
+    toOldLocationKey(line.path, line.oldLine)
+  ].filter(Boolean);
+}
+
+function findBestLocationKey(
+  lines: DiffLine[],
+  target: NonNullable<DiffViewerProps["selectedTarget"]>
+) {
+  if (!target.line) {
+    return toFileLocationKey(target.path);
+  }
+
+  const exactNewLine = lines.find(
+    (line) => line.path === target.path && line.newLine === target.line
+  );
+  if (exactNewLine) {
+    return toLocationKey(target.path, target.line);
+  }
+
+  const exactOldLine = lines.find(
+    (line) => line.path === target.path && line.oldLine === target.line
+  );
+  if (exactOldLine) {
+    return toOldLocationKey(target.path, target.line);
+  }
+
+  return toFileLocationKey(target.path);
 }
 
 export function mapDraftCommentToInlineReview(

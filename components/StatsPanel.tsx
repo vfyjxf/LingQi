@@ -1,6 +1,7 @@
 "use client";
 
 import { Award, AlertTriangle, ShieldCheck, Zap, Code2, CheckCircle } from "lucide-react";
+import { RadialBarChart, RadialBar, Cell, ResponsiveContainer, Tooltip, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 
 export type StatsData = {
   filesChanged: number;
@@ -53,9 +54,12 @@ const severitySegments = [
 
 const categoryDefs = [
   { key: "security", label: "安全漏洞", icon: ShieldCheck, color: "#dc2626", textColor: "text-red-400" },
+  { key: "data", label: "数据风险", icon: AlertTriangle, color: "#ea580c", textColor: "text-orange-400" },
+  { key: "stability", label: "稳定性", icon: AlertTriangle, color: "#d29922", textColor: "text-yellow-400" },
   { key: "performance", label: "性能瓶颈", icon: Zap, color: "#ca8a04", textColor: "text-yellow-400" },
-  { key: "logic", label: "编码逻辑", icon: AlertTriangle, color: "#7c3aed", textColor: "text-purple-400" },
-  { key: "style", label: "代码规范", icon: Code2, color: "#6b7280", textColor: "text-slate-400" },
+  { key: "api", label: "API 设计", icon: Code2, color: "#2563eb", textColor: "text-blue-400" },
+  { key: "testing", label: "测试覆盖", icon: ShieldCheck, color: "#7c3aed", textColor: "text-purple-400" },
+  { key: "maintainability", label: "可维护性", icon: Code2, color: "#6b7280", textColor: "text-slate-400" },
 ];
 
 export default function StatsPanel({ stats, activeFilter, onFilterChange }: StatsPanelProps) {
@@ -68,24 +72,26 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
     minor: stats.minorCount,
     nit: stats.nitCount,
   };
-  const totalSev = stats.riskCount || 1;
   const hasRisks = stats.riskCount > 0;
 
-  /* ---- Donut ---- */
-  const radius = 35;
-  const circumference = 2 * Math.PI * radius;
-  let accumulated = 0;
-  const donutSegments = severitySegments.map((seg) => {
-    const pct = sevCounts[seg.key] / totalSev;
-    const dash = pct * circumference;
-    const offset = -accumulated * circumference;
-    accumulated += pct;
-    return { ...seg, dash, offset, pct };
-  });
+  /* ---- RadialBarChart data ---- */
+  const severityRadialData = severitySegments.map((seg) => ({
+    name: seg.label,
+    value: sevCounts[seg.key],
+    fill: seg.color,
+    key: seg.key,
+  }));
 
-  /* ---- Category bars ---- */
+  /* ---- Category bars / RadarChart data ---- */
   const catCounts = stats.categoryCounts ?? {};
   const maxCat = Math.max(1, ...Object.values(catCounts));
+
+  const radarData = categoryDefs.map((cat) => ({
+    category: cat.label,
+    count: catCounts[cat.key] ?? 0,
+    fullMark: maxCat,
+    key: cat.key,
+  }));
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -109,9 +115,6 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
           <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8b949e]">
             <AlertTriangle className="h-3.5 w-3.5 text-[#f85149]" />风险严重度统计
           </h3>
-          {activeFilter?.type === "severity" && (
-            <button onClick={() => onFilterChange?.("clear", null)} className="text-xs font-semibold text-[#58a6ff] hover:underline">[清除筛选]</button>
-          )}
         </div>
 
         {!hasRisks ? (
@@ -120,53 +123,55 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
             <p className="text-xs font-semibold">零高危隐患，代码状态极为优秀！</p>
           </div>
         ) : (
-          <div className="flex flex-1 items-center justify-around gap-2">
-            <div className="relative h-28 w-28 shrink-0">
-              <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#21262d" strokeWidth="12" />
-                {donutSegments.map((seg) => (
-                  <circle
-                    key={seg.key}
-                    cx="50" cy="50" r={radius}
-                    fill="transparent"
-                    stroke={seg.color}
-                    strokeWidth="12"
-                    strokeDasharray={`${seg.dash} ${circumference}`}
-                    strokeDashoffset={seg.offset}
-                    strokeLinecap="round"
-                    className="cursor-pointer transition-all duration-500 hover:stroke-[14px]"
-                    onClick={() => onFilterChange?.("severity", seg.key)}
-                    aria-label={`按${seg.label}级别筛选`}
-                  />
-                ))}
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center font-mono">
-                <span className="text-lg font-black text-[#c9d1d9]">{stats.riskCount}</span>
-                <span className="text-xs font-semibold uppercase tracking-widest text-[#8b949e]">风险项</span>
-              </div>
-            </div>
-
-            <div className="w-28 space-y-2 text-xs">
-              {donutSegments.map((seg) => {
-                const isActive = activeFilter?.type === "severity" && activeFilter?.value === seg.key;
-                return (
-                  <button
-                    key={seg.key}
-                    onClick={() => onFilterChange?.("severity", seg.key)}
-                    className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left transition-all ${
-                      isActive ? "bg-[#21262d] font-semibold" : "hover:bg-[#21262d]"
-                    }`}
-                    style={{ borderLeft: isActive ? `2px solid ${seg.color}` : "2px solid transparent" }}
-                    aria-label={`按${seg.label}级别筛选`}
-                  >
-                    <span className="flex items-center gap-1.5 font-medium text-[#c9d1d9]">
-                      <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: seg.color }} />
-                      {seg.label}
-                    </span>
-                    <span className="rounded bg-[#21262d] px-1.5 py-0.5 font-mono text-xs text-[#8b949e]">{sevCounts[seg.key]}</span>
-                  </button>
-                );
-              })}
+          <div className="relative flex items-center justify-center h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart
+                cx="50%"
+                cy="50%"
+                innerRadius="30%"
+                outerRadius="90%"
+                barSize={14}
+                startAngle={90}
+                endAngle={-270}
+                data={severityRadialData}
+              >
+                <RadialBar
+                  dataKey="value"
+                  background={{ fill: "#21262d" }}
+                >
+                  {severityRadialData.map((seg) => {
+                    const isDimmed = activeFilter?.type === "severity" && activeFilter?.value !== seg.key;
+                    return (
+                      <Cell
+                        key={seg.key}
+                        fill={seg.fill}
+                        opacity={isDimmed ? 0.35 : 1}
+                      />
+                    );
+                  })}
+                </RadialBar>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#21262d",
+                    border: "1px solid #30363d",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                  }}
+                  labelStyle={{ display: "none" }}
+                  itemStyle={{ color: "#ffffff" }}
+                  separator=""
+                  formatter={(value, _name, props) => {
+                    const total = severityRadialData.reduce((sum, d) => sum + d.value, 0) || 1;
+                    const pct = ((Number(value) / total) * 100).toFixed(1);
+                    const label = (props as any)?.payload?.name ?? "";
+                    return [`${label}：${value} 项 (${pct}%)`, ""];
+                  }}
+                />
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none font-mono">
+              <span className="text-lg font-black text-[#c9d1d9]">{stats.riskCount}</span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#8b949e]">风险项</span>
             </div>
           </div>
         )}
@@ -178,40 +183,58 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
           <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8b949e]">
             <Zap className="h-3.5 w-3.5 text-[#d29922]" />风险类别分布
           </h3>
-          {activeFilter?.type === "category" && (
-            <button onClick={() => onFilterChange?.("clear", null)} className="text-xs font-semibold text-[#58a6ff] hover:underline">[清除筛选]</button>
-          )}
         </div>
 
-        <div className="flex flex-1 flex-col justify-center space-y-2.5">
-          {categoryDefs.map((cat) => {
-            const count = catCounts[cat.key] ?? 0;
-            const pct = (count / maxCat) * 100;
-            const isActive = activeFilter?.type === "category" && activeFilter?.value === cat.key;
-            return (
-              <div
-                key={cat.key}
-                onClick={() => onFilterChange?.("category", cat.key)}
-                role="button"
-                aria-label={`按${cat.label}类别筛选`}
-                className={`cursor-pointer rounded px-2 py-1 border border-transparent transition ${
-                  isActive ? "border-[#58a6ff]/50 bg-[#21262d]" : "hover:bg-[#21262d]"
-                }`}
-              >
-                <div className="mb-1 flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1 font-semibold text-[#c9d1d9]">
-                    <cat.icon className={`h-3.5 w-3.5 ${cat.textColor}`} />
-                    {cat.label}
-                  </span>
-                  <span className="font-mono font-semibold text-[#8b949e]">{count} 项</span>
-                </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#21262d]">
-                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: cat.color }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {!hasRisks ? (
+          <div className="flex flex-1 flex-col items-center justify-center space-y-2 py-6 text-[#8b949e]">
+            <CheckCircle className="h-10 w-10 text-[#3fb950]" />
+            <p className="text-xs font-semibold">零高危隐患，代码状态极为优秀！</p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={280}>
+            <RadarChart cx="50%" cy="50%" data={radarData} margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
+              <PolarGrid stroke="#30363d" />
+              <PolarAngleAxis
+                dataKey="category"
+                tick={(props: any) => {
+                  const { x, y, payload } = props;
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill="#8b949e"
+                      fontSize={12}
+                    >
+                      {payload.value}
+                    </text>
+                  );
+                }}
+              />
+              <PolarRadiusAxis tick={false} axisLine={false} />
+              <Radar
+                dataKey="count"
+                stroke="#58a6ff"
+                fill="#58a6ff"
+                fillOpacity={0.15}
+                strokeWidth={2}
+                dot={{ r: 4, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 1 }}
+                activeDot={{ r: 6, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 2 }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#21262d",
+                  border: "1px solid #30363d",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  color: "#c9d1d9",
+                }}
+                formatter={(value) => [String(value) + " 项", ""]}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

@@ -43,7 +43,29 @@ describe("PrInput", () => {
 
     expect(onAnalyze).toHaveBeenCalledWith(
       "https://github.com/vercel/next.js/pull/123",
-      []
+      [],
+      ""
+    );
+  });
+
+  test("填写补充审查要求后提交 userPrompt", async () => {
+    const onAnalyze = vi.fn().mockResolvedValue(undefined);
+    const { user } = renderPrInput(onAnalyze);
+
+    await user.type(
+      screen.getByPlaceholderText("https://github.com/owner/repo/pull/123"),
+      "https://github.com/vercel/next.js/pull/123"
+    );
+    await user.type(
+      screen.getByPlaceholderText(/重点检查并发安全/),
+      "重点检查缓存一致性"
+    );
+    await user.click(screen.getByRole("button", { name: "分析" }));
+
+    expect(onAnalyze).toHaveBeenCalledWith(
+      "https://github.com/vercel/next.js/pull/123",
+      [],
+      "重点检查缓存一致性"
     );
   });
 
@@ -78,7 +100,8 @@ describe("PrInput", () => {
 
     expect(onAnalyze).toHaveBeenCalledWith(
       "https://github.com/vercel/next.js/pull/123",
-      ["fast-reviewer"]
+      ["fast-reviewer"],
+      ""
     );
   });
 

@@ -5,7 +5,11 @@ import { parsePrUrl } from "@/lib/github/parse-pr-url";
 import type { ReviewerOption } from "@/lib/config/reviewer-options";
 
 type PrInputProps = {
-  onAnalyze: (url: string, reviewerIds: string[]) => void | Promise<void>;
+  onAnalyze: (
+    url: string,
+    reviewerIds: string[],
+    userPrompt: string
+  ) => void | Promise<void>;
   reviewers?: ReviewerOption[];
 };
 
@@ -14,6 +18,7 @@ export default function PrInput({ onAnalyze, reviewers = [] }: PrInputProps) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedReviewerIds, setSelectedReviewerIds] = useState<string[]>([]);
+  const [userPrompt, setUserPrompt] = useState("");
 
   function handleInput(value: string) {
     setInputUrl(value);
@@ -34,7 +39,7 @@ export default function PrInput({ onAnalyze, reviewers = [] }: PrInputProps) {
     setIsLoading(true);
 
     try {
-      await onAnalyze(inputUrl, selectedReviewerIds);
+      await onAnalyze(inputUrl, selectedReviewerIds, userPrompt.trim());
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +94,23 @@ export default function PrInput({ onAnalyze, reviewers = [] }: PrInputProps) {
           {error}
         </p>
       )}
+
+      <label className="block space-y-2 rounded-lg border border-[#30363d] bg-[#0d1117] p-3">
+        <span className="block text-xs font-semibold text-[#c9d1d9]">
+          补充审查要求
+        </span>
+        <textarea
+          className="min-h-24 w-full resize-y rounded-md border border-[#30363d] bg-[#161b22] px-3 py-2 text-xs leading-relaxed text-[#c9d1d9] outline-none placeholder:text-[#57606a] focus:border-[#58a6ff]/50 disabled:cursor-not-allowed disabled:opacity-50"
+          placeholder="例如：重点检查并发安全、缓存一致性、权限绕过，不要输出低价值格式建议。"
+          value={userPrompt}
+          maxLength={1000}
+          disabled={isLoading}
+          onChange={(event) => setUserPrompt(event.target.value)}
+        />
+        <span className="block text-right font-mono text-[11px] text-[#8b949e]">
+          {userPrompt.length} / 1000
+        </span>
+      </label>
 
       {reviewers.length > 0 && (
         <fieldset className="rounded-lg border border-[#30363d] bg-[#0d1117] p-3">

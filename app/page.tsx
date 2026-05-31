@@ -174,6 +174,7 @@ export default function HomePage() {
     null
   );
   const [reviewerOptions, setReviewerOptions] = useState<ReviewerOption[]>([]);
+  const [reviewPrompt, setReviewPrompt] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterState>({ type: null, value: null });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedReviewTarget, setSelectedReviewTarget] = useState<{
@@ -225,10 +226,15 @@ export default function HomePage() {
     };
   }, []);
 
-  const handleAnalyze = useCallback(async (url: string, reviewerIds: string[]) => {
+  const handleAnalyze = useCallback(async (
+    url: string,
+    reviewerIds: string[],
+    userPrompt: string
+  ) => {
     setStep("live");
     setStatus("fetching");
     setAnalysisResult(null);
+    setReviewPrompt(userPrompt);
 
     try {
       const response = await fetch("/api/analyze-pr", {
@@ -236,7 +242,8 @@ export default function HomePage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           prUrl: url,
-          ...(reviewerIds.length > 0 ? { reviewerIds } : {})
+          ...(reviewerIds.length > 0 ? { reviewerIds } : {}),
+          ...(userPrompt ? { userPrompt } : {})
         })
       });
       const payload = await response.json();
@@ -267,6 +274,7 @@ export default function HomePage() {
     setErrorMessage(null);
     setSelectedReviewTarget(null);
     setReviewActionMessage(null);
+    setReviewPrompt("");
   }
 
   const displayStats = buildStatsData(analysisResult) ?? demoStats;
@@ -584,6 +592,7 @@ export default function HomePage() {
                     diffText={displayDiff}
                     selectedTarget={selectedReviewTarget}
                     inlineReviews={inlineReviews}
+                    reviewPrompt={reviewPrompt}
                     onAddComment={handleAddComment}
                     onPublishReview={handlePublishReview}
                     maxHeight="none"

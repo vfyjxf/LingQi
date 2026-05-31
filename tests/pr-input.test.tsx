@@ -42,7 +42,43 @@ describe("PrInput", () => {
     await user.click(screen.getByRole("button", { name: "分析" }));
 
     expect(onAnalyze).toHaveBeenCalledWith(
+      "https://github.com/vercel/next.js/pull/123",
+      []
+    );
+  });
+
+  test("选择 reviewer 后提交 reviewerIds", async () => {
+    const onAnalyze = vi.fn().mockResolvedValue(undefined);
+    const { user } = {
+      user: userEvent.setup(),
+      ...render(
+        <PrInput
+          onAnalyze={onAnalyze}
+          reviewers={[
+            {
+              id: "fast-reviewer",
+              name: "快速上下文 reviewer",
+              role: "fast",
+              provider: "deepseek",
+              model: "deepseek-v4-flash",
+              trigger: "always",
+              focus: ["summary", "risk"]
+            }
+          ]}
+        />
+      )
+    };
+
+    await user.click(screen.getByLabelText(/快速上下文 reviewer/));
+    await user.type(
+      screen.getByPlaceholderText("https://github.com/owner/repo/pull/123"),
       "https://github.com/vercel/next.js/pull/123"
+    );
+    await user.click(screen.getByRole("button", { name: "分析" }));
+
+    expect(onAnalyze).toHaveBeenCalledWith(
+      "https://github.com/vercel/next.js/pull/123",
+      ["fast-reviewer"]
     );
   });
 

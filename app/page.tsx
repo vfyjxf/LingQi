@@ -16,6 +16,7 @@ import {
   type InlineReviewItem
 } from "@/components/DiffViewer";
 import type { AnalyzePullRequestResult } from "@/lib/api/analyze-pr";
+import type { ReviewerOption } from "@/lib/config/reviewer-options";
 import type { ReviewSummaryData, ReviewSummaryMeta } from "@/components/ReviewSummary";
 import { parsePrUrl } from "@/lib/github/parse-pr-url";
 import {
@@ -172,6 +173,7 @@ export default function HomePage() {
   const [analysisResult, setAnalysisResult] = useState<AnalyzeResponse | null>(
     null
   );
+  const [reviewerOptions, setReviewerOptions] = useState<ReviewerOption[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterState>({ type: null, value: null });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedReviewTarget, setSelectedReviewTarget] = useState<{
@@ -198,7 +200,32 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [step, status]);
 
-  const handleAnalyze = useCallback(async (url: string) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadReviewerOptions() {
+      try {
+        const response = await fetch("/api/reviewers");
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (!cancelled && Array.isArray(payload.reviewers)) {
+          setReviewerOptions(payload.reviewers as ReviewerOption[]);
+        }
+      } catch {
+        if (!cancelled) {
+          setReviewerOptions([]);
+        }
+      }
+    }
+
+    loadReviewerOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleAnalyze = useCallback(async (url: string, reviewerIds: string[]) => {
     setStep("live");
     setStatus("fetching");
     setAnalysisResult(null);
@@ -207,7 +234,10 @@ export default function HomePage() {
       const response = await fetch("/api/analyze-pr", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ prUrl: url })
+        body: JSON.stringify({
+          prUrl: url,
+          ...(reviewerIds.length > 0 ? { reviewerIds } : {})
+        })
       });
       const payload = await response.json();
 
@@ -339,7 +369,7 @@ export default function HomePage() {
 
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-[#c9d1d9]">2. 提供 Pull Request 页面链接</label>
-                <PrInput onAnalyze={handleAnalyze} />
+                <PrInput onAnalyze={handleAnalyze} reviewers={reviewerOptions} />
               </div>
             </div>
           </div>

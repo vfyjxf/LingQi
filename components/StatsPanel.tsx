@@ -132,7 +132,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                 outerRadius="90%"
                 barSize={14}
                 startAngle={90}
-                endAngle={-270}
+                endAngle={450}
                 data={severityRadialData}
               >
                 <RadialBar

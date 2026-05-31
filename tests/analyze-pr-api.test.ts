@@ -217,6 +217,52 @@ describe("analyzePullRequest", () => {
         publishableCount: 2,
         blockedCount: 0
       },
+      reviewSubmitPlan: {
+        owner: "octocat",
+        repo: "hello-world",
+        pullNumber: 42,
+        payload: {
+          event: "COMMENT",
+          body: [
+            "LingQi 已生成本次 Pull Request 的 Review 评论草稿。",
+            "",
+            "可提交评论：2",
+            "已拦截评论：0",
+            "",
+            "当前结果为 dry-run 预览，尚未写回 GitHub。"
+          ].join("\n"),
+          comments: [
+            {
+              path: "src/auth/session.ts",
+              line: 42,
+              side: "RIGHT",
+              body: [
+                "**风险：刷新 token 前需要确认用户状态**",
+                "",
+                "证据：diff 修改了 refreshSession 分支。",
+                "",
+                "影响：禁用用户可能继续获得新 token。"
+              ].join("\n")
+            },
+            {
+              path: "src/auth/session.ts",
+              line: 42,
+              side: "RIGHT",
+              body: [
+                "**建议：刷新 token 时没有重新检查用户状态。**",
+                "",
+                "建议做法：刷新前查询用户状态。",
+                "",
+                "原因：避免已禁用账号继续获得有效会话。"
+              ].join("\n")
+            }
+          ]
+        },
+        publishableCount: 2,
+        blockedCount: 0,
+        blockedComments: [],
+        dryRun: true
+      },
       context: {
         prUrl: "https://github.com/octocat/hello-world/pull/42",
         author: "octocat",

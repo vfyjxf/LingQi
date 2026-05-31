@@ -41,6 +41,27 @@ const result: AnalyzePullRequestResult = {
     publishableCount: 0,
     blockedCount: 0
   },
+  reviewSubmitPlan: {
+    owner: "octocat",
+    repo: "hello-world",
+    pullNumber: 42,
+    payload: {
+      event: "COMMENT",
+      body: [
+        "LingQi 已生成本次 Pull Request 的 Review 评论草稿。",
+        "",
+        "可提交评论：0",
+        "已拦截评论：0",
+        "",
+        "当前结果为 dry-run 预览，尚未写回 GitHub。"
+      ].join("\n"),
+      comments: []
+    },
+    publishableCount: 0,
+    blockedCount: 0,
+    blockedComments: [],
+    dryRun: true
+  },
   context: {
     prUrl: "https://github.com/octocat/hello-world/pull/42",
     author: "octocat",

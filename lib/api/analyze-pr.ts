@@ -16,7 +16,8 @@ import type {
 import { parsePrUrl } from "@/lib/github/parse-pr-url";
 import type { AiReviewReport } from "@/lib/report/schema";
 import { buildReviewDraft } from "@/lib/review-draft/build-review-draft";
-import type { ReviewDraft } from "@/lib/review-draft/schema";
+import { buildReviewSubmitPlan } from "@/lib/review-draft/build-submit-payload";
+import type { ReviewDraft, ReviewSubmitPlan } from "@/lib/review-draft/schema";
 
 type EnvLike = Record<string, string | undefined>;
 
@@ -52,6 +53,7 @@ export type AnalyzePullRequestOptions = {
 export type AnalyzePullRequestResult = {
   report: AiReviewReport;
   reviewDraft: ReviewDraft;
+  reviewSubmitPlan: ReviewSubmitPlan;
   context: {
     prUrl: string;
     author: string;
@@ -121,10 +123,17 @@ export async function analyzePullRequest({
     });
     const report = await deps.analyzePrContext(context, provider);
     const reviewDraft = buildReviewDraft(report, context);
+    const reviewSubmitPlan = buildReviewSubmitPlan({
+      owner: parsedPr.owner,
+      repo: parsedPr.repo,
+      pullNumber: parsedPr.pullNumber,
+      draft: reviewDraft
+    });
 
     return {
       report,
       reviewDraft,
+      reviewSubmitPlan,
       context: {
         prUrl: parsedPr.url,
         author: context.pr.author,

@@ -24,9 +24,6 @@ type RiskCardProps = {
   risk: RiskFinding;
   suggestion?: Suggestion;
   highlighted?: boolean;
-  onExpandContext?: () => void;
-  isExpanding?: boolean;
-  contextExpanded?: boolean;
 };
 
 const severityConfig: Record<Severity, { label: string; icon: typeof Shield; iconBg: string; badge: string }> = {
@@ -50,9 +47,6 @@ export default function RiskCard({
   risk,
   suggestion,
   highlighted,
-  onExpandContext,
-  isExpanding,
-  contextExpanded,
 }: RiskCardProps) {
   const [expanded, setExpanded] = useState(true);
   const sev = severityConfig[risk.severity];
@@ -117,26 +111,6 @@ export default function RiskCard({
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex items-center gap-4">
-            {onExpandContext && !contextExpanded && (
-              <button
-                type="button"
-                className="w-full rounded-md border border-slate-700 py-2 text-center text-xs font-bold text-cyan-400 transition-colors hover:border-cyan-400/50 disabled:opacity-50"
-                disabled={isExpanding}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onExpandContext();
-                }}
-              >
-                {isExpanding ? "展开中..." : "展开上下文"}
-              </button>
-            )}
-
-            {contextExpanded && (
-              <span className="text-[10px] font-bold text-emerald-400">上下文已展开</span>
-            )}
-          </div>
         </div>
       )}
     </div>

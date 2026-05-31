@@ -430,7 +430,7 @@ export default function HomePage() {
               <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-6rem)] overflow-y-auto sticky top-[73px] flex flex-col gap-4">
                 <div className="space-y-3">
                   <h2 className="text-sm font-semibold text-slate-200">
-                    Risk Findings<span className="ml-1 font-normal text-slate-500">({displayRisks.length})</span>
+                    发现代码安全及架构隐患<span className="ml-1 font-normal text-slate-500">({displayRisks.length})</span>
                   </h2>
                   {displayRisks.map((risk, i) => (
                     <RiskCard
@@ -438,7 +438,6 @@ export default function HomePage() {
                       risk={risk}
                       suggestion={displaySuggestions[i]}
                       highlighted={selectedFile === risk.file}
-                      onExpandContext={i === 0 ? () => {} : undefined}
                     />
                   ))}
                 </div>

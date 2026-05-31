@@ -35,25 +35,25 @@ export default function FileTree({
   }
 
   const statusColor: Record<string, string> = {
-    added: "text-green-400",
-    modified: "text-yellow-400",
-    removed: "text-red-400",
-    renamed: "text-purple-400",
+    added: "text-[#3fb950]",
+    modified: "text-[#d29922]",
+    removed: "text-[#f85149]",
+    renamed: "text-[#8957e5]",
   };
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/60 shadow">
+    <div className="rounded-lg border border-[#30363d] bg-[#161b22] shadow">
       {/* Header */}
-      <div className="border-b border-slate-800 px-4 py-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <div className="border-b border-[#30363d] px-4 py-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-[#8b949e]">
           变更文件 ({files.length})
         </h3>
       </div>
 
       {/* Search */}
-      <div className="border-b border-slate-800 px-4 py-2">
+      <div className="border-b border-[#30363d] px-4 py-2">
         <input
-          className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none placeholder:text-slate-600 focus:border-cyan-300/50"
+          className="w-full rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-xs text-[#c9d1d9] outline-none placeholder:text-[#57606a] focus:border-[#58a6ff]/50"
           placeholder="搜索文件..."
           type="text"
           value={search}
@@ -62,9 +62,9 @@ export default function FileTree({
       </div>
 
       {/* File list */}
-      <ul className="max-h-[400px] overflow-y-auto">
+      <ul className="max-h-[400px] overflow-y-auto" role="listbox">
         {filtered.length === 0 && (
-          <li className="px-4 py-6 text-center text-xs text-slate-600">
+          <li className="px-4 py-6 text-center text-xs text-[#57606a]">
             {search ? "没有匹配的文件" : "暂无文件"}
           </li>
         )}
@@ -75,32 +75,39 @@ export default function FileTree({
           return (
             <li
               key={file.filename}
-              className="flex cursor-pointer items-center gap-3 border-b border-slate-800/50 px-4 py-2.5 text-xs transition hover:bg-slate-800/50 last:border-none"
+              role="option"
+              tabIndex={0}
+              className="flex cursor-pointer items-center gap-3 border-b border-[#30363d] px-4 py-2.5 text-xs transition hover:bg-[#1c2128] last:border-none"
               onClick={() => onFileSelect?.(file.filename)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onFileSelect?.(file.filename); } }}
             >
               {/* File status indicator */}
               <span
                 className={[
                   "inline-block w-1.5 h-1.5 rounded-full shrink-0",
-                  statusColor[file.status] || "text-slate-500",
+                  statusColor[file.status] || "text-[#8b949e]",
                 ].join(" ")}
                 title={file.status}
                 style={{ backgroundColor: "currentColor" }}
               />
 
               {/* File name */}
-              <span className="min-w-0 flex-1 truncate font-mono text-slate-300">
+              <button
+                className="min-w-0 flex-1 truncate font-mono text-left text-[#c9d1d9] bg-transparent border-none cursor-pointer p-0"
+                onClick={() => onFileSelect?.(file.filename)}
+                aria-label={file.filename}
+              >
                 {displayName(file.filename)}
-              </span>
+              </button>
 
               {/* Full path */}
-              <span className="hidden truncate text-slate-600 sm:inline">
+              <span className="hidden truncate text-[#57606a] sm:inline">
                 {file.filename}
               </span>
 
               {/* Risk count badge */}
               {riskCount > 0 && (
-                <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-400/10 px-1.5 text-[10px] font-semibold text-red-400">
+                <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#f85149]/10 px-1.5 text-xs font-semibold text-[#f85149]">
                   {riskCount}
                 </span>
               )}

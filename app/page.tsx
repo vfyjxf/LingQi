@@ -25,7 +25,10 @@ import {
   RefreshCw,
   BarChart3,
   ShieldAlert,
+  ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
+import type { DimensionScoreData } from "@/components/StatsPanel";
 
 /* ------------------------------------------------------------------ */
 /* Demo data                                                            */
@@ -123,6 +126,15 @@ const demoStats: StatsData = {
   majorCount: 1,
   minorCount: 1,
   nitCount: 0,
+  dimensionScores: [
+    { dimension: "security", label: "安全漏洞", score: 85, severity: "minor", evidence: "No critical auth flaws detected", color: "#2563eb", icon: ShieldCheck },
+    { dimension: "data", label: "数据风险", score: 70, severity: "minor", evidence: "Minor data validation gaps", color: "#2563eb", icon: AlertTriangle },
+    { dimension: "stability", label: "稳定性", score: 60, severity: "major", evidence: "Potential race condition in async flow", color: "#ea580c", icon: AlertTriangle },
+    { dimension: "performance", label: "性能瓶颈", score: 45, severity: "major", evidence: "N+1 query pattern detected", color: "#ea580c", icon: Zap },
+    { dimension: "api", label: "API 设计", score: 80, severity: "nit", evidence: "Well-structured REST endpoints", color: "#6b7280", icon: Code2 },
+    { dimension: "testing", label: "测试覆盖", score: 35, severity: "major", evidence: "Missing integration tests for auth flow", color: "#ea580c", icon: ShieldCheck },
+    { dimension: "maintainability", label: "可维护性", score: 55, severity: "minor", evidence: "Some magic numbers and unclear variable names", color: "#2563eb", icon: Code2 },
+  ],
 };
 
 const demoError: ReviewError = {
@@ -512,6 +524,37 @@ function buildStatsData(result: AnalyzeResponse | null): StatsData | null {
     {}
   );
 
+  const dimensionLabelMap: Record<string, { label: string; icon: any }> = {
+    security: { label: "安全漏洞", icon: ShieldCheck },
+    data: { label: "数据风险", icon: AlertTriangle },
+    stability: { label: "稳定性", icon: AlertTriangle },
+    performance: { label: "性能瓶颈", icon: Zap },
+    api: { label: "API 设计", icon: Code2 },
+    testing: { label: "测试覆盖", icon: ShieldCheck },
+    maintainability: { label: "可维护性", icon: Code2 },
+  };
+
+  const severityColorMap: Record<string, string> = {
+    blocker: "#dc2626",
+    major: "#ea580c",
+    minor: "#2563eb",
+    nit: "#6b7280",
+  };
+
+  const dimensionScores: DimensionScoreData[] | undefined =
+    result.report.dimensionScores?.map((ds) => {
+      const mapping = dimensionLabelMap[ds.dimension];
+      return {
+        dimension: ds.dimension,
+        label: mapping?.label ?? ds.dimension,
+        score: ds.score,
+        severity: ds.severity,
+        evidence: ds.evidence,
+        color: severityColorMap[ds.severity] ?? "#6b7280",
+        icon: mapping?.icon ?? Code2,
+      };
+    });
+
   return {
     filesChanged: result.context.changedFiles,
     linesAdded: result.context.additions,
@@ -521,7 +564,8 @@ function buildStatsData(result: AnalyzeResponse | null): StatsData | null {
     majorCount,
     minorCount,
     nitCount,
-    categoryCounts
+    categoryCounts,
+    dimensionScores,
   };
 }
 

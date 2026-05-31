@@ -13,6 +13,17 @@ export type StatsData = {
   minorCount: number;
   nitCount: number;
   categoryCounts?: Record<string, number>;
+  dimensionScores?: DimensionScoreData[];
+};
+
+export type DimensionScoreData = {
+  dimension: string;
+  label: string;
+  score: number;
+  severity: string;
+  evidence: string;
+  color: string;
+  icon: React.ComponentType<{ className?: string }>;
 };
 
 export type FilterState = {
@@ -27,13 +38,10 @@ type StatsPanelProps = {
 };
 
 /* ---- Quality score ---- */
-function calcQualityScore(stats: StatsData) {
-  const deductions =
-    stats.blockerCount * 20 +
-    stats.majorCount * 12 +
-    stats.minorCount * 5 +
-    stats.nitCount * 2;
-  return Math.max(0, 100 - deductions);
+export function deriveAggregateScore(dimensionScores?: DimensionScoreData[]): number {
+  if (!dimensionScores || dimensionScores.length === 0) return 0;
+  const sum = dimensionScores.reduce((acc, ds) => acc + ds.score, 0);
+  return Math.round(sum / dimensionScores.length);
 }
 
 function gradeInfo(score: number) {
@@ -63,7 +71,7 @@ const categoryDefs = [
 ];
 
 export default function StatsPanel({ stats, activeFilter, onFilterChange }: StatsPanelProps) {
-  const score = calcQualityScore(stats);
+  const score = deriveAggregateScore(stats.dimensionScores);
   const grade = gradeInfo(score);
 
   const sevCounts: Record<string, number> = {
@@ -82,16 +90,17 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
     key: seg.key,
   }));
 
-  /* ---- Category bars / RadarChart data ---- */
-  const catCounts = stats.categoryCounts ?? {};
-  const maxCat = Math.max(1, ...Object.values(catCounts));
+  /* ---- RadarChart data ---- */
+  const hasDimensionScores = stats.dimensionScores && stats.dimensionScores.length > 0;
 
-  const radarData = categoryDefs.map((cat) => ({
-    category: cat.label,
-    count: catCounts[cat.key] ?? 0,
-    fullMark: maxCat,
-    key: cat.key,
-  }));
+  const radarData = hasDimensionScores
+    ? stats.dimensionScores!.map((ds) => ({
+        dimension: ds.label,
+        score: ds.score,
+        fullMark: 100,
+        key: ds.dimension,
+      }))
+    : [];
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -181,21 +190,21 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
       <div className="flex flex-col justify-between rounded-lg border border-[#30363d] bg-[#161b22] p-6 shadow-sm">
         <div className="mb-3 flex items-center justify-between border-b border-[#30363d] pb-2">
           <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8b949e]">
-            <Zap className="h-3.5 w-3.5 text-[#d29922]" />风险类别分布
+            <Zap className="h-3.5 w-3.5 text-[#d29922]" />维度质量评分
           </h3>
         </div>
 
-        {!hasRisks ? (
+        {!hasDimensionScores ? (
           <div className="flex flex-1 flex-col items-center justify-center space-y-2 py-6 text-[#8b949e]">
             <CheckCircle className="h-10 w-10 text-[#3fb950]" />
-            <p className="text-xs font-semibold">零高危隐患，代码状态极为优秀！</p>
+            <p className="text-xs font-semibold">暂无维度评分数据</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <RadarChart cx="50%" cy="50%" data={radarData} margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <PolarGrid stroke="#30363d" />
               <PolarAngleAxis
-                dataKey="category"
+                dataKey="dimension"
                 tick={(props: any) => {
                   const { x, y, payload } = props;
                   return (
@@ -212,15 +221,15 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                   );
                 }}
               />
-              <PolarRadiusAxis tick={false} axisLine={false} />
+              <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "#8b949e", fontSize: 10 }} />
               <Radar
-                dataKey="count"
-                stroke="#58a6ff"
-                fill="#58a6ff"
+                dataKey="score"
+                stroke="#3fb950"
+                fill="#3fb950"
                 fillOpacity={0.15}
                 strokeWidth={2}
-                dot={{ r: 4, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 1 }}
-                activeDot={{ r: 6, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 2 }}
+                dot={{ r: 4, fill: "#3fb950", stroke: "#0d1117", strokeWidth: 1 }}
+                activeDot={{ r: 6, fill: "#3fb950", stroke: "#0d1117", strokeWidth: 2 }}
               />
               <Tooltip
                 contentStyle={{
@@ -230,7 +239,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                   fontSize: "12px",
                   color: "#c9d1d9",
                 }}
-                formatter={(value) => [String(value) + " 项", ""]}
+                formatter={(value: number) => [`${value} / 100`, "质量评分"]}
               />
             </RadarChart>
           </ResponsiveContainer>

@@ -42,12 +42,12 @@ export default function ReviewProgress({
         <div className="flex flex-col items-center gap-2">
           <span className="text-xl text-slate-400 animate-pulse">&loz;</span>
           <span className="text-sm font-medium text-slate-200">
-            {progressMessage || "Processing..."}
+            {progressMessage || "处理中..."}
           </span>
           <div
             className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-800"
             role="progressbar"
-            aria-label="Review in progress"
+            aria-label="评审进行中"
           >
             <div className="animate-progress-bar h-full w-[30%] rounded-full bg-cyan-400" />
           </div>
@@ -58,12 +58,12 @@ export default function ReviewProgress({
       {status === "done" && stats && (
         <div className="flex flex-col items-center gap-2">
           <span className="text-xl text-green-400">&check;</span>
-          <span className="text-sm font-medium text-slate-200">Review complete</span>
+          <span className="text-sm font-medium text-slate-200">评审完成</span>
           <div className="mt-1 flex gap-4 text-xs">
-            <span className="text-slate-400">{stats.filesChanged} files changed</span>
+            <span className="text-slate-400">{stats.filesChanged} 个文件变更</span>
             <span className="font-semibold text-green-400">+{stats.linesAdded}</span>
             <span className="font-semibold text-red-400">-{stats.linesDeleted}</span>
-            <span className="font-semibold text-purple-400">{stats.riskCount} risks found</span>
+            <span className="font-semibold text-purple-400">{stats.riskCount} 个风险</span>
           </div>
         </div>
       )}
@@ -72,7 +72,7 @@ export default function ReviewProgress({
       {status === "error" && error && (
         <div className="flex flex-col items-center gap-2">
           <span className="text-xl text-red-400">&times;</span>
-          <span className="text-sm font-medium text-slate-200">Error occurred</span>
+          <span className="text-sm font-medium text-slate-200">发生错误</span>
           <p className="text-center text-xs text-red-400">{error.message}</p>
           <p className="text-center text-xs text-slate-500">{error.suggestion}</p>
         </div>

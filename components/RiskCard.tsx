@@ -30,10 +30,10 @@ type RiskCardProps = {
 };
 
 const severityConfig: Record<Severity, { label: string; icon: typeof Shield; iconBg: string; badge: string }> = {
-  blocker: { label: "Blocker", icon: Shield, iconBg: "bg-red-500 text-white", badge: "bg-red-400/10 border-red-400/30 text-red-400" },
-  major: { label: "Major", icon: AlertTriangle, iconBg: "bg-orange-500 text-white", badge: "bg-orange-400/10 border-orange-400/30 text-orange-400" },
-  minor: { label: "Minor", icon: AlertCircle, iconBg: "bg-blue-500 text-white", badge: "bg-blue-400/10 border-blue-400/30 text-blue-400" },
-  nit: { label: "Nit", icon: Info, iconBg: "bg-slate-500 text-white", badge: "bg-slate-400/10 border-slate-400/30 text-slate-400" },
+  blocker: { label: "阻断", icon: Shield, iconBg: "bg-red-500 text-white", badge: "bg-red-400/10 border-red-400/30 text-red-400" },
+  major: { label: "严重", icon: AlertTriangle, iconBg: "bg-orange-500 text-white", badge: "bg-orange-400/10 border-orange-400/30 text-orange-400" },
+  minor: { label: "轻微", icon: AlertCircle, iconBg: "bg-blue-500 text-white", badge: "bg-blue-400/10 border-blue-400/30 text-blue-400" },
+  nit: { label: "建议", icon: Info, iconBg: "bg-slate-500 text-white", badge: "bg-slate-400/10 border-slate-400/30 text-slate-400" },
 };
 
 const categoryLabel: Record<RiskCategory, string> = {

@@ -148,10 +148,10 @@ const loadingSteps = [
 ];
 
 const modeCards = [
-  { key: "full" as ReviewMode, label: "全息总览", desc: "综合全面诊断", icon: Layers, color: "border-cyan-400 text-cyan-400 bg-cyan-400/10" },
-  { key: "security" as ReviewMode, label: "安全强化", desc: "审计漏洞与溢出", icon: Shield, color: "border-red-400 text-red-400 bg-red-400/10" },
-  { key: "performance" as ReviewMode, label: "效能吞吐", desc: "检测并发与延迟", icon: Zap, color: "border-yellow-400 text-yellow-400 bg-yellow-400/10" },
-  { key: "logic" as ReviewMode, label: "逻辑漏洞", desc: "严审死锁与崩溃", icon: Code2, color: "border-purple-400 text-purple-400 bg-purple-400/10" },
+  { key: "full" as ReviewMode, label: "全息总览", desc: "综合全面诊断", icon: Layers, color: "border-[#58a6ff] text-[#58a6ff] bg-[#58a6ff]/10" },
+  { key: "security" as ReviewMode, label: "安全强化", desc: "审计漏洞与溢出", icon: Shield, color: "border-[#f85149] text-[#f85149] bg-[#f85149]/10" },
+  { key: "performance" as ReviewMode, label: "效能吞吐", desc: "检测并发与延迟", icon: Zap, color: "border-[#d29922] text-[#d29922] bg-[#d29922]/10" },
+  { key: "logic" as ReviewMode, label: "逻辑漏洞", desc: "严审死锁与崩溃", icon: Code2, color: "border-[#8957e5] text-[#8957e5] bg-[#8957e5]/10" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -256,18 +256,18 @@ export default function HomePage() {
     buildGeneralSuggestions(analysisResult) ?? [];
 
   const header = (
-    <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur py-3 px-6">
+    <header className="sticky top-0 z-40 border-b border-[#30363d] bg-[#161b22]/80 backdrop-blur py-3 px-6">
       <div className="mx-auto flex max-w-7xl items-center">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-cyan-400 text-slate-950">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#c9d1d9] text-[#0d1117]">
             <GitPullRequest className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="flex items-center gap-1.5 text-lg font-extrabold tracking-tight text-slate-100">
+            <h1 className="flex items-center gap-1.5 text-lg font-extrabold tracking-tight text-[#c9d1d9]">
               LingQi
-              <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase text-cyan-400">AI</span>
+              <span className="rounded-full border border-[#58a6ff]/20 bg-[#58a6ff]/10 px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase text-[#58a6ff]">AI</span>
             </h1>
-            <p className="text-xs font-medium text-slate-500">智能 Pull Request 代码评审辅助系统</p>
+            <p className="text-xs font-medium text-[#8b949e]">智能 Pull Request 代码评审辅助系统</p>
           </div>
         </div>
       </div>
@@ -277,23 +277,23 @@ export default function HomePage() {
   /* ========================== Hero ========================== */
   if (step === "hero") {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100">
+      <main className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
         {header}
         <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
           <div className="space-y-3 py-4 text-center">
-            <div className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-400">
+            <div className="inline-flex items-center gap-1 rounded-full border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-3 py-1 text-xs font-semibold text-[#58a6ff]">
               <Sparkles className="h-3.5 w-3.5" />AI 深度赋能
             </div>
-            <h2 className="text-3xl font-black leading-tight tracking-tight text-slate-100">让您的 PR 代码评审更高能、更健全</h2>
-            <p className="mx-auto max-w-lg text-sm leading-relaxed text-slate-400">
+            <h2 className="text-3xl font-black leading-tight tracking-tight text-[#c9d1d9]">让您的 PR 代码评审更高能、更健全</h2>
+            <p className="mx-auto max-w-lg text-sm leading-relaxed text-[#8b949e]">
               输入 GitHub 公开仓库的项目 PR 页面链接，自动提取变更增量，并由 AI 深度评估代码缺陷、潜在高危漏洞、并发冲突与重构建议。
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-6 shadow-sm md:p-8">
+          <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-6 shadow-sm md:p-8">
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="block text-xs font-semibold text-slate-300">1. 设定代码分析侧重维度</label>
+                <label className="block text-xs font-semibold text-[#c9d1d9]">1. 设定代码分析侧重维度</label>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                   {modeCards.map((item) => {
                     const isSelected = mode === item.key;
@@ -305,13 +305,13 @@ export default function HomePage() {
                         className={`flex h-24 w-full select-none flex-col justify-between rounded-md border p-3.5 text-left transition-all ${
                           isSelected
                             ? `${item.color} border-2 font-semibold ring-1 ring-current ring-inset`
-                            : "border-slate-700 bg-slate-950 text-slate-500 hover:border-slate-500 hover:bg-slate-900"
+                            : "border-[#30363d] bg-[#0d1117] text-[#8b949e] hover:border-[#8c959f] hover:bg-[#161b22]"
                         }`}
                       >
                         <item.icon className="h-5 w-5 shrink-0" />
                         <div>
                           <p className="mt-1 text-xs font-semibold leading-tight">{item.label}</p>
-                          <p className="mt-0.5 block text-[10px] font-normal leading-tight text-slate-500">{item.desc}</p>
+                          <p className="mt-0.5 block text-[10px] font-normal leading-tight text-[#8b949e]">{item.desc}</p>
                         </div>
                       </button>
                     );
@@ -320,33 +320,33 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-semibold text-slate-300">2. 提供 Pull Request 页面链接</label>
+                <label className="block text-xs font-semibold text-[#c9d1d9]">2. 提供 Pull Request 页面链接</label>
                 <PrInput onAnalyze={handleAnalyze} />
               </div>
             </div>
           </div>
 
           <div className="space-y-3">
-            <p className="text-center text-xs font-semibold text-slate-500">或者，一键点击测试精选公开 PR</p>
+            <p className="text-center text-xs font-semibold text-[#8b949e]">或者，一键点击测试精选公开 PR</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {demoPrExamples.map((demo) => (
                 <button
                   key={demo.no}
                   onClick={() => handleAnalyze(demo.url)}
-                  className="group rounded-md border border-slate-800 bg-slate-900/60 p-3 text-left shadow-sm transition-all hover:border-cyan-400/50 hover:shadow-md"
+                  className="group rounded-md border border-[#30363d] bg-[#161b22] p-3 text-left shadow-sm transition-all hover:border-[#58a6ff]/50 hover:shadow-md"
                 >
-                  <p className="flex items-center justify-between text-xs font-semibold leading-tight text-cyan-400">
+                  <p className="flex items-center justify-between text-xs font-semibold leading-tight text-[#58a6ff]">
                     {demo.name}
-                    <ExternalLink className="h-3 w-3 text-slate-600 group-hover:text-cyan-400" />
+                    <ExternalLink className="h-3 w-3 text-[#57606a] group-hover:text-[#58a6ff]" />
                   </p>
-                  <p className="mt-1 font-mono text-[10px] text-slate-500">{demo.owner}/{demo.repo} #{demo.no}</p>
+                  <p className="mt-1 font-mono text-[10px] text-[#8b949e]">{demo.owner}/{demo.repo} #{demo.no}</p>
                 </button>
               ))}
             </div>
           </div>
 
           <div className="text-center">
-            <button className="text-xs text-slate-600 underline transition-colors hover:text-red-400" onClick={handleDemoError}>模拟错误状态</button>
+            <button className="text-xs text-[#8b949e] underline transition-colors hover:text-[#f85149]" onClick={handleDemoError}>模拟错误状态</button>
           </div>
         </div>
       </main>
@@ -356,20 +356,20 @@ export default function HomePage() {
   /* ========================== Error ========================== */
   if (step === "error") {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100">
+      <main className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
         {header}
         <div className="mx-auto max-w-2xl px-6 pt-8">
-          <div className="rounded-md border border-slate-800 border-l-4 border-l-red-500 bg-slate-900/60 p-5 shadow-sm">
+          <div className="rounded-md border border-[#30363d] border-l-4 border-l-[#f85149] bg-[#161b22] p-5 shadow-sm">
             <div className="flex items-start gap-3">
-              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#f85149]" />
               <div>
-                <h4 className="text-sm font-semibold text-red-400">评审流启动失败</h4>
-                <p className="mt-1 text-xs leading-relaxed text-slate-300">{errorMessage ?? demoError.message}</p>
+                <h4 className="text-sm font-semibold text-[#f85149]">评审流启动失败</h4>
+                <p className="mt-1 text-xs leading-relaxed text-[#c9d1d9]">{errorMessage ?? demoError.message}</p>
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between gap-4 border-t border-slate-800 pt-3">
-              <p className="text-[10px] text-slate-500">请确认您已正确配置 AI 模型密钥与 GitHub Token。</p>
-              <button onClick={handleReset} className="rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-[10px] font-semibold text-slate-300 transition hover:bg-slate-800">返回配置页面</button>
+            <div className="mt-3 flex items-center justify-between gap-4 border-t border-[#30363d] pt-3">
+              <p className="text-[10px] text-[#8b949e]">请确认您已正确配置 AI 模型密钥与 GitHub Token。</p>
+              <button onClick={handleReset} className="rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-[10px] font-semibold text-[#c9d1d9] transition hover:bg-[#1c2128]">返回配置页面</button>
             </div>
           </div>
         </div>
@@ -379,34 +379,34 @@ export default function HomePage() {
 
   /* ========================== Loading / Done ========================== */
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
       {header}
 
       {step === "live" && status !== "done" && status !== "error" && (
         <div className="mx-auto max-w-xl space-y-6 px-6 py-16 text-center">
-          <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-full border border-slate-800 bg-slate-900">
-            <RefreshCw className="h-8 w-8 animate-spin text-cyan-400" />
+          <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-full border border-[#30363d] bg-[#161b22]">
+            <RefreshCw className="h-8 w-8 animate-spin text-[#58a6ff]" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-semibold tracking-tight text-slate-100">正为您在云端执行自动化审查</h3>
-            <p className="mx-auto max-w-sm text-sm text-slate-500">AI 引擎正在获取源码 Diff、拆解修改意图、并针对安全性与执行效能出具详细审查意见。</p>
+            <h3 className="text-xl font-semibold tracking-tight text-[#c9d1d9]">正为您在云端执行自动化审查</h3>
+            <p className="mx-auto max-w-sm text-sm text-[#8b949e]">AI 引擎正在获取源码 Diff、拆解修改意图、并针对安全性与执行效能出具详细审查意见。</p>
           </div>
-          <div className="mx-auto max-w-sm rounded-md border border-slate-800 bg-slate-900/60 p-4 shadow-sm">
+          <div className="mx-auto max-w-sm rounded-md border border-[#30363d] bg-[#161b22] p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-800">
-                <div className="h-full rounded-full bg-cyan-400 transition-all duration-300" style={{ width: `${((loadingStep + 1) / loadingSteps.length) * 100}%` }} />
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#21262d]">
+                <div className="h-full rounded-full bg-[#238636] transition-all duration-300" style={{ width: `${((loadingStep + 1) / loadingSteps.length) * 100}%` }} />
               </div>
-              <span className="shrink-0 select-none font-mono text-[10px] font-semibold text-slate-500">{loadingStep + 1} / {loadingSteps.length}</span>
+              <span className="shrink-0 select-none font-mono text-[10px] font-semibold text-[#8b949e]">{loadingStep + 1} / {loadingSteps.length}</span>
             </div>
-            <p className="mt-3 text-left text-xs font-semibold text-slate-300">{loadingSteps[loadingStep]}</p>
+            <p className="mt-3 text-left text-xs font-semibold text-[#c9d1d9]">{loadingSteps[loadingStep]}</p>
           </div>
         </div>
       )}
 
       {step === "done" && (
         <div className="mx-auto max-w-7xl space-y-6 px-6 py-4">
-          <div className="flex flex-col gap-4 border-b border-slate-800 pb-2 sm:flex-row sm:items-center sm:justify-between">
-            <button onClick={handleReset} className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-800">
+          <div className="flex flex-col gap-4 border-b border-[#30363d] pb-2 sm:flex-row sm:items-center sm:justify-between">
+            <button onClick={handleReset} className="inline-flex items-center gap-1.5 rounded-md border border-[#30363d] bg-[#161b22] px-3.5 py-1.5 text-xs font-semibold text-[#c9d1d9] transition hover:bg-[#1c2128]">
               <RefreshCw className="h-3.5 w-3.5" />重新评审其他 PR
             </button>
             <div className="flex items-center space-x-1 select-none">
@@ -418,7 +418,7 @@ export default function HomePage() {
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as typeof activeTab)}
                   className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === tab.key ? "bg-cyan-400 text-slate-950 shadow-sm" : "text-slate-500 hover:bg-slate-900 hover:text-slate-300"
+                    activeTab === tab.key ? "bg-[#c9d1d9] text-[#0d1117] shadow-sm" : "text-[#8b949e] hover:bg-[#161b22] hover:text-[#c9d1d9]"
                   }`}
                 >
                   <tab.icon className="h-3.5 w-3.5 shrink-0" />{tab.label}
@@ -442,7 +442,7 @@ export default function HomePage() {
 
           {activeTab === "risks" && (
             <div className="flex gap-4 items-start min-h-[calc(100vh-12rem)]">
-              <aside className="w-[220px] shrink-0 sticky top-[73px] max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-slate-800 bg-slate-900/60">
+              <aside className="w-[220px] shrink-0 sticky top-[73px] max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-[#30363d] bg-[#161b22]">
                 <FileTree files={displayFiles} riskCounts={displayRiskCounts} onFileSelect={setSelectedFile} />
               </aside>
               <main className="flex-[3] min-w-0">
@@ -451,16 +451,16 @@ export default function HomePage() {
               <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-6rem)] overflow-y-auto sticky top-[73px] flex flex-col gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-sm font-semibold text-slate-200">
+                    <h2 className="text-sm font-semibold text-[#c9d1d9]">
                       发现代码安全及架构隐患
-                      <span className="ml-1 font-normal text-slate-500">
+                      <span className="ml-1 font-normal text-[#8b949e]">
                         ({filteredRisks.length}{filteredRisks.length !== displayRisks.length ? ` / ${displayRisks.length}` : ""})
                       </span>
                     </h2>
                     {activeFilter.type && (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-medium text-cyan-400">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 text-[10px] font-medium text-[#58a6ff]">
                         筛选: {activeFilter.type === "severity" ? "级别" : "类别"}={activeFilter.value}
-                        <button onClick={() => handleFilterChange("clear", null)} className="ml-0.5 font-extrabold hover:text-cyan-300">&times;</button>
+                        <button onClick={() => handleFilterChange("clear", null)} className="ml-0.5 font-extrabold hover:text-[#58a6ff]">&times;</button>
                       </span>
                     )}
                   </div>
@@ -474,13 +474,13 @@ export default function HomePage() {
                       />
                     ))
                   ) : (
-                    <div className="flex flex-col items-center justify-center py-16 text-slate-500 space-y-4">
+                    <div className="flex flex-col items-center justify-center py-16 text-[#8b949e] space-y-4">
                       <AlertCircle className="h-10 w-10" />
                       <div className="text-center">
-                        <p className="text-sm font-semibold text-slate-400">没有匹配的隐患记录</p>
-                        <p className="mt-1 text-xs text-slate-500">当前筛选条件下未找到风险反馈，请清除筛选重试。</p>
+                        <p className="text-sm font-semibold text-[#8b949e]">没有匹配的隐患记录</p>
+                        <p className="mt-1 text-xs text-[#8b949e]">当前筛选条件下未找到风险反馈，请清除筛选重试。</p>
                       </div>
-                      <button onClick={() => handleFilterChange("clear", null)} className="rounded-md border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-cyan-400 transition hover:bg-slate-800">
+                      <button onClick={() => handleFilterChange("clear", null)} className="rounded-md border border-[#30363d] bg-[#161b22] px-4 py-2 text-xs font-semibold text-[#58a6ff] transition hover:bg-[#1c2128]">
                         清除所有筛选条件
                       </button>
                     </div>

@@ -1,4 +1,5 @@
 import type { GroupedChangeFile } from "@/lib/analysis/change-grouper";
+import { parseDiffLineMap } from "@/lib/analysis/diff-lines";
 import { compareReviewPriority } from "@/lib/analysis/review-profile";
 import type { LingQiConfig, ReviewProfile } from "@/lib/config/schema";
 
@@ -47,6 +48,9 @@ export type PrContextBundleFile = {
   deletions: number;
   changes: number;
   patch?: string;
+  numberedPatch?: string;
+  commentableLines?: number[];
+  oldLines?: number[];
   includedInPrompt: boolean;
   truncated: boolean;
   truncationReason?: string;
@@ -164,6 +168,9 @@ function buildBundleGroup(
         additions: file.additions,
         deletions: file.deletions,
         changes: file.changes,
+        numberedPatch: file.numberedPatch,
+        commentableLines: file.commentableLines,
+        oldLines: file.oldLines,
         includedInPrompt: false,
         truncated: false,
         truncationReason: `超过 ${group.name} 分组文件数量预算`,
@@ -210,6 +217,9 @@ function buildIncludedFile(
   const patch = file.patch;
 
   if (patch && patch.length > maxPatchCharsPerFile) {
+    const truncatedPatch = patch.slice(0, maxPatchCharsPerFile);
+    const lineMap = parseDiffLineMap(truncatedPatch);
+
     limitations.push(
       `${file.filename} patch 已截断到 ${maxPatchCharsPerFile} 字符。`
     );
@@ -220,10 +230,12 @@ function buildIncludedFile(
       additions: file.additions,
       deletions: file.deletions,
       changes: file.changes,
-      patch: `${patch.slice(
-        0,
-        maxPatchCharsPerFile
-      )}\n[已截断：超过分组 patch 字符预算]`,
+      patch: `${truncatedPatch}\n[已截断：超过分组 patch 字符预算]`,
+      numberedPatch: lineMap.numberedPatch
+        ? `${lineMap.numberedPatch}\n[已截断：超过分组 patch 字符预算]`
+        : undefined,
+      commentableLines: lineMap.newLines,
+      oldLines: lineMap.oldLines,
       includedInPrompt: true,
       truncated: true,
       truncationReason: "超过分组 patch 字符预算",
@@ -240,6 +252,9 @@ function buildIncludedFile(
     deletions: file.deletions,
     changes: file.changes,
     patch,
+    numberedPatch: file.numberedPatch,
+    commentableLines: file.commentableLines,
+    oldLines: file.oldLines,
     includedInPrompt: true,
     truncated: false,
     riskHints: file.riskHints,

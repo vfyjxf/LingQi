@@ -26,9 +26,15 @@ export function buildReviewDraft(
   context: PrAnalysisContext
 ): ReviewDraft {
   const changedFiles = new Set(context.files.map((file) => file.filename));
+  const commentableLinesByFile = new Map(
+    context.files.map((file) => [
+      file.filename,
+      new Set(file.commentableLines ?? [])
+    ])
+  );
   const comments = buildDraftItems(report)
     .filter((item) => publishableSeverities.has(item.severity))
-    .map((item) => toDraftComment(item, changedFiles));
+    .map((item) => toDraftComment(item, changedFiles, commentableLinesByFile));
 
   return {
     comments,
@@ -72,9 +78,14 @@ function buildDraftItems(report: AiReviewReport): DraftItem[] {
 
 function toDraftComment(
   item: DraftItem,
-  changedFiles: Set<string>
+  changedFiles: Set<string>,
+  commentableLinesByFile: Map<string, Set<number>>
 ): ReviewDraftComment {
-  const blockedReason = getBlockedReason(item, changedFiles);
+  const blockedReason = getBlockedReason(
+    item,
+    changedFiles,
+    commentableLinesByFile
+  );
 
   return {
     path: item.path,
@@ -91,7 +102,8 @@ function toDraftComment(
 
 function getBlockedReason(
   item: DraftItem,
-  changedFiles: Set<string>
+  changedFiles: Set<string>,
+  commentableLinesByFile: Map<string, Set<number>>
 ): string | undefined {
   if (!changedFiles.has(item.path)) {
     return "文件不在本次 PR diff 中";
@@ -103,6 +115,11 @@ function getBlockedReason(
 
   if (item.confidence === "low") {
     return "置信度不足";
+  }
+
+  const commentableLines = commentableLinesByFile.get(item.path);
+  if (!commentableLines?.has(item.line)) {
+    return "行号不在本次 PR 可评论行中";
   }
 
   return undefined;

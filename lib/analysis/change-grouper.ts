@@ -10,6 +10,9 @@ export type ChangeGrouperFile = {
   deletions: number;
   changes: number;
   patch?: string;
+  numberedPatch?: string;
+  commentableLines?: number[];
+  oldLines?: number[];
   riskHints: RiskHint[];
 };
 

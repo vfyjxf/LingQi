@@ -29,7 +29,7 @@ const githubData: GitHubPrData = {
       additions: 12,
       deletions: 4,
       changes: 16,
-      patch: "@@ -1,3 +1,5 @@"
+      patch: "@@ -40,3 +42,4 @@\n const session = getSession();\n+refreshSession(session);"
     }
   ],
   commits: [{ sha: "abc123", message: "fix auth refresh" }]
@@ -53,7 +53,11 @@ const context: PrAnalysisContext = {
       additions: 12,
       deletions: 4,
       changes: 16,
-      patch: "@@ -1,3 +1,5 @@",
+      patch: "@@ -40,3 +42,4 @@\n const session = getSession();\n+refreshSession(session);",
+      numberedPatch:
+        "@@ -40,3 +42,4 @@\n  LEFT 40 RIGHT 42 | const session = getSession();\n+ RIGHT 43 | refreshSession(session);",
+      commentableLines: [42, 43],
+      oldLines: [40],
       riskHints: ["security"]
     }
   ],
@@ -274,7 +278,9 @@ describe("analyzePullRequest", () => {
           "diff --git a/src/auth/session.ts b/src/auth/session.ts",
           "--- a/src/auth/session.ts",
           "+++ b/src/auth/session.ts",
-          "@@ -1,3 +1,5 @@"
+          "@@ -40,3 +42,4 @@",
+          " const session = getSession();",
+          "+refreshSession(session);"
         ].join("\n"),
         audit: {
           enabled: false,

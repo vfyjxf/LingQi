@@ -22,6 +22,8 @@ const context: PrAnalysisContext = {
       deletions: 4,
       changes: 16,
       patch: "@@ -1,3 +1,5 @@",
+      commentableLines: [42, 43],
+      oldLines: [40, 41],
       riskHints: ["security"]
     }
   ],
@@ -199,6 +201,32 @@ describe("buildReviewDraft", () => {
     expect(draft.comments[0]).toMatchObject({
       canPublish: false,
       blockedReason: "置信度不足"
+    });
+  });
+
+  test("行号不在可评论行中时标记不可发布", () => {
+    const draft = buildReviewDraft(
+      {
+        ...baseReport,
+        risks: [
+          {
+            severity: "major",
+            confidence: "high",
+            category: "security",
+            file: "src/auth/session.ts",
+            line: 99,
+            title: "错误行号",
+            evidence: "模型输出了 diff 中不存在的新文件行号。",
+            impact: "GitHub Review inline comment 会提交失败。"
+          }
+        ]
+      },
+      context
+    );
+
+    expect(draft.comments[0]).toMatchObject({
+      canPublish: false,
+      blockedReason: "行号不在本次 PR 可评论行中"
     });
   });
 

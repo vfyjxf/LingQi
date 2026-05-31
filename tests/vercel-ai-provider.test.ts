@@ -136,6 +136,9 @@ describe("createVercelAiProvider", () => {
                 deletions: 3,
                 changes: 45,
                 patch: "@@ -1 +1 @@\n+export async function POST() {}",
+                numberedPatch: "@@ -1 +1 @@\n+ RIGHT 1 | export async function POST() {}",
+                commentableLines: [1],
+                oldLines: [],
                 includedInPrompt: true,
                 truncated: false,
                 riskHints: ["api"],
@@ -167,5 +170,10 @@ describe("createVercelAiProvider", () => {
     expect(prompt).toContain(
       "全局 risks 和 suggestions 应从分组结果中挑选最高价值项"
     );
+    expect(prompt).toContain(
+      "risks.line 和 suggestions.line 必须取自问题证据所在代码行旁边的 RIGHT 行号"
+    );
+    expect(prompt).toContain("+ RIGHT 1 | export async function POST() {}");
+    expect(prompt).toContain("不要使用 oldLines");
   });
 });

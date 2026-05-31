@@ -46,7 +46,7 @@ export default function FileTree({
       {/* Header */}
       <div className="border-b border-slate-800 px-4 py-3">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Changed Files ({files.length})
+          变更文件 ({files.length})
         </h3>
       </div>
 
@@ -54,7 +54,7 @@ export default function FileTree({
       <div className="border-b border-slate-800 px-4 py-2">
         <input
           className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none placeholder:text-slate-600 focus:border-cyan-300/50"
-          placeholder="Search files..."
+          placeholder="搜索文件..."
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

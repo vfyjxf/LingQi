@@ -124,4 +124,12 @@ GITHUB_TOKEN=ghp_...
 npm run smoke:ai
 ```
 
-这个命令会读取 `lingqi.config.json`、`lingqi.config.local.json` 和 `.env.local`，使用一份很小的 mock PR 上下文调用 DeepSeek，并检查返回结果能否通过 LingQi 的结构化 Review schema。后续 `/api/analyze-pr` 也会复用同一套配置入口。
+这个命令会读取 `lingqi.config.json`、`lingqi.config.local.json` 和 `.env.local`，使用一份很小的 mock PR 上下文调用 DeepSeek，并检查返回结果能否通过 LingQi 的结构化 Review schema。
+
+如果要用真实公开 PR 验证完整链路，可以传入 PR 链接：
+
+```bash
+npm run smoke:ai -- --pr https://github.com/owner/repo/pull/123
+```
+
+脚本会输出 PR 摘要、风险数、建议数、Review 草稿数量、分组分析数量和上下文限制，方便演示前快速判断后端是否跑通。后续 `/api/analyze-pr` 也会复用同一套配置入口。

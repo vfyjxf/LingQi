@@ -8,6 +8,7 @@ import {
 } from "@/lib/analysis/context-bundle";
 import type { LingQiConfig, ReviewProfile } from "@/lib/config/schema";
 import type { GitHubPrData } from "@/lib/github/github-types";
+import { parseDiffLineMap } from "./diff-lines";
 import { detectRiskHints, type RiskHint } from "./risk-hints";
 
 export type PrAnalysisContext = {
@@ -28,6 +29,9 @@ export type PrAnalysisContext = {
     deletions: number;
     changes: number;
     patch?: string;
+    numberedPatch?: string;
+    commentableLines?: number[];
+    oldLines?: number[];
     riskHints: RiskHint[];
   }>;
   commits: Array<{
@@ -52,15 +56,21 @@ export function buildPrAnalysisContext(
   githubData: GitHubPrData,
   options: BuildPrAnalysisContextOptions = {}
 ): PrAnalysisContext {
-  const files = githubData.files.map((file) => ({
-    filename: file.filename,
-    status: file.status,
-    additions: file.additions,
-    deletions: file.deletions,
-    changes: file.changes,
-    patch: file.patch,
-    riskHints: detectRiskHints(file)
-  }));
+  const files = githubData.files.map((file) => {
+    const lineMap = parseDiffLineMap(file.patch);
+    return {
+      filename: file.filename,
+      status: file.status,
+      additions: file.additions,
+      deletions: file.deletions,
+      changes: file.changes,
+      patch: file.patch,
+      numberedPatch: lineMap.numberedPatch,
+      commentableLines: lineMap.newLines,
+      oldLines: lineMap.oldLines,
+      riskHints: detectRiskHints(file)
+    };
+  });
 
   const context: PrAnalysisContext = {
     pr: {

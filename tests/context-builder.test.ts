@@ -21,7 +21,7 @@ const githubData: GitHubPrData = {
       additions: 12,
       deletions: 4,
       changes: 16,
-      patch: "@@ token session @@"
+      patch: "@@ -1,2 +1,3 @@\n const token = session.token;\n+refresh(token);"
     },
     {
       filename: "tests/session.test.ts",
@@ -77,7 +77,11 @@ describe("buildPrAnalysisContext", () => {
         additions: 12,
         deletions: 4,
         changes: 16,
-        patch: "@@ token session @@",
+        patch: "@@ -1,2 +1,3 @@\n const token = session.token;\n+refresh(token);",
+        numberedPatch:
+          "@@ -1,2 +1,3 @@\n  LEFT 1 RIGHT 1 | const token = session.token;\n+ RIGHT 2 | refresh(token);",
+        commentableLines: [1, 2],
+        oldLines: [1],
         riskHints: ["security"]
       },
       {
@@ -86,6 +90,10 @@ describe("buildPrAnalysisContext", () => {
         additions: 20,
         deletions: 0,
         changes: 20,
+        patch: undefined,
+        numberedPatch: undefined,
+        commentableLines: [],
+        oldLines: [],
         riskHints: ["testing"]
       }
     ]);
@@ -123,6 +131,13 @@ describe("buildPrAnalysisContext", () => {
     });
 
     expect(context.contextBundle?.groups[0].id).toBe("api");
+    expect(context.contextBundle?.groups[0].files[0].commentableLines).toEqual([
+      1,
+      2
+    ]);
+    expect(context.contextBundle?.groups[0].files[0].numberedPatch).toContain(
+      "+ RIGHT 2 | refresh(token);"
+    );
     expect(context.contextBundle?.groups[0].reviewPrompts).toContain(
       "确认 API 行为兼容"
     );

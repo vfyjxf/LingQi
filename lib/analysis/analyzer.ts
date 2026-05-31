@@ -1,6 +1,6 @@
 import type { AiProvider } from "@/lib/ai/provider";
 import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
-import { validateGroupAnalysisContract } from "@/lib/analysis/group-analysis-contract";
+import { normalizeGroupAnalysisContract } from "@/lib/analysis/group-analysis-contract";
 import { parseAiReviewReport } from "@/lib/report/schema";
 
 export async function analyzePrContext(
@@ -8,5 +8,5 @@ export async function analyzePrContext(
   provider: AiProvider
 ) {
   const report = await provider.analyze(context);
-  return validateGroupAnalysisContract(parseAiReviewReport(report), context);
+  return normalizeGroupAnalysisContract(parseAiReviewReport(report), context);
 }

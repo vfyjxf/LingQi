@@ -38,12 +38,12 @@ export default function ReviewProgress({
   if (status === "error" && !error) return null;
 
   return (
-    <div className="mx-auto mt-6 w-full max-w-[560px] rounded-lg border border-[#30363d] bg-[#161b22] p-5 shadow-lg">
+    <div className="mx-auto mt-6 w-full max-w-xl rounded-lg border border-[#30363d] bg-[#161b22] p-5 shadow-lg">
       {/* ---- Progressing ---- */}
       {isProgressing && (
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-5 w-5 animate-spin text-[#8b949e]" />
-          <span className="text-sm font-medium text-[#c9d1d9]">
+          <span className="text-sm font-semibold text-[#c9d1d9]">
             {progressMessage || "处理中..."}
           </span>
           <div
@@ -60,7 +60,7 @@ export default function ReviewProgress({
       {status === "done" && stats && (
         <div className="flex flex-col items-center gap-2">
           <CheckCircle className="h-5 w-5 text-[#3fb950]" />
-          <span className="text-sm font-medium text-[#c9d1d9]">评审完成</span>
+          <span className="text-sm font-semibold text-[#c9d1d9]">评审完成</span>
           <div className="mt-1 flex gap-4 text-xs">
             <span className="text-[#8b949e]">{stats.filesChanged} 个文件变更</span>
             <span className="font-semibold text-[#3fb950]">+{stats.linesAdded}</span>
@@ -74,7 +74,7 @@ export default function ReviewProgress({
       {status === "error" && error && (
         <div className="flex flex-col items-center gap-2">
           <X className="h-5 w-5 text-[#f85149]" />
-          <span className="text-sm font-medium text-[#c9d1d9]">发生错误</span>
+          <span className="text-sm font-semibold text-[#c9d1d9]">发生错误</span>
           <p className="text-center text-xs text-[#f85149]">{error.message}</p>
           <p className="text-center text-xs text-[#8b949e]">{error.suggestion}</p>
         </div>

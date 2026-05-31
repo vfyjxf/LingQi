@@ -265,7 +265,7 @@ export default function HomePage() {
           <div>
             <h1 className="flex items-center gap-1.5 text-lg font-extrabold tracking-tight text-[#c9d1d9]">
               LingQi
-              <span className="rounded-full border border-[#58a6ff]/20 bg-[#58a6ff]/10 px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase text-[#58a6ff]">AI</span>
+              <span className="rounded-full border border-[#58a6ff]/20 bg-[#58a6ff]/10 px-1.5 py-0.5 font-mono text-xs font-semibold uppercase text-[#58a6ff]">AI</span>
             </h1>
             <p className="text-xs font-medium text-[#8b949e]">智能 Pull Request 代码评审辅助系统</p>
           </div>
@@ -311,7 +311,7 @@ export default function HomePage() {
                         <item.icon className="h-5 w-5 shrink-0" />
                         <div>
                           <p className="mt-1 text-xs font-semibold leading-tight">{item.label}</p>
-                          <p className="mt-0.5 block text-[10px] font-normal leading-tight text-[#8b949e]">{item.desc}</p>
+                          <p className="mt-0.5 block text-xs font-normal leading-tight text-[#8b949e]">{item.desc}</p>
                         </div>
                       </button>
                     );
@@ -339,7 +339,7 @@ export default function HomePage() {
                     {demo.name}
                     <ExternalLink className="h-3 w-3 text-[#57606a] group-hover:text-[#58a6ff]" />
                   </p>
-                  <p className="mt-1 font-mono text-[10px] text-[#8b949e]">{demo.owner}/{demo.repo} #{demo.no}</p>
+                  <p className="mt-1 font-mono text-xs text-[#8b949e]">{demo.owner}/{demo.repo} #{demo.no}</p>
                 </button>
               ))}
             </div>
@@ -368,8 +368,8 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mt-3 flex items-center justify-between gap-4 border-t border-[#30363d] pt-3">
-              <p className="text-[10px] text-[#8b949e]">请确认您已正确配置 AI 模型密钥与 GitHub Token。</p>
-              <button onClick={handleReset} className="rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-[10px] font-semibold text-[#c9d1d9] transition hover:bg-[#1c2128]">返回配置页面</button>
+              <p className="text-xs text-[#8b949e]">请确认您已正确配置 AI 模型密钥与 GitHub Token。</p>
+              <button onClick={handleReset} className="rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-xs font-semibold text-[#c9d1d9] transition hover:bg-[#1c2128]">返回配置页面</button>
             </div>
           </div>
         </div>
@@ -396,7 +396,7 @@ export default function HomePage() {
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#21262d]">
                 <div className="h-full rounded-full bg-[#238636] transition-all duration-300" style={{ width: `${((loadingStep + 1) / loadingSteps.length) * 100}%` }} />
               </div>
-              <span className="shrink-0 select-none font-mono text-[10px] font-semibold text-[#8b949e]">{loadingStep + 1} / {loadingSteps.length}</span>
+              <span className="shrink-0 select-none font-mono text-xs font-semibold text-[#8b949e]">{loadingStep + 1} / {loadingSteps.length}</span>
             </div>
             <p className="mt-3 text-left text-xs font-semibold text-[#c9d1d9]">{loadingSteps[loadingStep]}</p>
           </div>
@@ -442,13 +442,13 @@ export default function HomePage() {
 
           {activeTab === "risks" && (
             <div className="flex gap-4 items-start min-h-[calc(100vh-12rem)]">
-              <aside className="w-[220px] shrink-0 sticky top-[73px] max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-[#30363d] bg-[#161b22]">
+              <aside className="w-[var(--sidebar-width)] shrink-0 sticky top-[var(--header-height)] max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-[#30363d] bg-[#161b22]">
                 <FileTree files={displayFiles} riskCounts={displayRiskCounts} onFileSelect={setSelectedFile} />
               </aside>
               <main className="flex-[3] min-w-0">
                 <DiffViewer diffText={displayDiff} />
               </main>
-              <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-6rem)] overflow-y-auto sticky top-[73px] flex flex-col gap-4">
+              <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-6rem)] overflow-y-auto sticky top-[var(--header-height)] flex flex-col gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <h2 className="text-sm font-semibold text-[#c9d1d9]">
@@ -458,9 +458,9 @@ export default function HomePage() {
                       </span>
                     </h2>
                     {activeFilter.type && (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 text-[10px] font-medium text-[#58a6ff]">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 text-xs font-medium text-[#58a6ff]">
                         筛选: {activeFilter.type === "severity" ? "级别" : "类别"}={activeFilter.value}
-                        <button onClick={() => handleFilterChange("clear", null)} className="ml-0.5 font-extrabold hover:text-[#58a6ff]">&times;</button>
+                        <button onClick={() => handleFilterChange("clear", null)} className="ml-0.5 font-semibold hover:text-[#58a6ff]">&times;</button>
                       </span>
                     )}
                   </div>

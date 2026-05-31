@@ -95,10 +95,10 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
         <span className="text-xs font-semibold uppercase tracking-wider text-[#8b949e]">PR 综合质量评级</span>
         <div className={`my-4 flex h-28 w-28 flex-col items-center justify-center rounded-full border-4 font-mono select-none ${grade.color}`}>
           <span className="text-5xl font-black">{grade.grade}</span>
-          <span className="mt-0.5 text-[10px] font-extrabold uppercase tracking-widest">{score} / 100</span>
+          <span className="mt-0.5 text-xs font-black uppercase tracking-widest">{score} / 100</span>
         </div>
         <div className="z-10 space-y-1.5">
-          <h4 className="text-base font-bold text-[#c9d1d9]">{grade.label}</h4>
+          <h4 className="text-base font-semibold text-[#c9d1d9]">{grade.label}</h4>
           <p className="max-w-xs text-xs text-[#8b949e]">{grade.motto}</p>
         </div>
       </div>
@@ -110,7 +110,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
             <AlertTriangle className="h-3.5 w-3.5 text-[#f85149]" />风险严重度统计
           </h3>
           {activeFilter?.type === "severity" && (
-            <button onClick={() => onFilterChange?.("clear", null)} className="text-[10px] font-bold text-[#58a6ff] hover:underline">[清除筛选]</button>
+            <button onClick={() => onFilterChange?.("clear", null)} className="text-xs font-semibold text-[#58a6ff] hover:underline">[清除筛选]</button>
           )}
         </div>
 
@@ -142,7 +142,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center font-mono">
                 <span className="text-lg font-black text-[#c9d1d9]">{stats.riskCount}</span>
-                <span className="text-[8px] font-bold uppercase tracking-widest text-[#8b949e]">风险项</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-[#8b949e]">风险项</span>
               </div>
             </div>
 
@@ -154,7 +154,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                     key={seg.key}
                     onClick={() => onFilterChange?.("severity", seg.key)}
                     className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left transition-all ${
-                      isActive ? "bg-[#21262d] font-bold" : "hover:bg-[#21262d]"
+                      isActive ? "bg-[#21262d] font-semibold" : "hover:bg-[#21262d]"
                     }`}
                     style={{ borderLeft: isActive ? `2px solid ${seg.color}` : "2px solid transparent" }}
                     aria-label={`按${seg.label}级别筛选`}
@@ -163,7 +163,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                       <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: seg.color }} />
                       {seg.label}
                     </span>
-                    <span className="rounded bg-[#21262d] px-1.5 py-0.5 font-mono text-[10px] text-[#8b949e]">{sevCounts[seg.key]}</span>
+                    <span className="rounded bg-[#21262d] px-1.5 py-0.5 font-mono text-xs text-[#8b949e]">{sevCounts[seg.key]}</span>
                   </button>
                 );
               })}
@@ -179,7 +179,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
             <Zap className="h-3.5 w-3.5 text-[#d29922]" />风险类别分布
           </h3>
           {activeFilter?.type === "category" && (
-            <button onClick={() => onFilterChange?.("clear", null)} className="text-[10px] font-bold text-[#58a6ff] hover:underline">[清除筛选]</button>
+            <button onClick={() => onFilterChange?.("clear", null)} className="text-xs font-semibold text-[#58a6ff] hover:underline">[清除筛选]</button>
           )}
         </div>
 
@@ -198,12 +198,12 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                   isActive ? "border-[#58a6ff]/50 bg-[#21262d]" : "hover:bg-[#21262d]"
                 }`}
               >
-                <div className="mb-1 flex items-center justify-between text-[10px]">
+                <div className="mb-1 flex items-center justify-between text-xs">
                   <span className="flex items-center gap-1 font-semibold text-[#c9d1d9]">
                     <cat.icon className={`h-3.5 w-3.5 ${cat.textColor}`} />
                     {cat.label}
                   </span>
-                  <span className="font-mono font-bold text-[#8b949e]">{count} 项</span>
+                  <span className="font-mono font-semibold text-[#8b949e]">{count} 项</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#21262d]">
                   <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: cat.color }} />

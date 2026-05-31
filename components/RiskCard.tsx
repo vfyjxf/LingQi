@@ -73,18 +73,18 @@ export default function RiskCard({
 
         <div className="min-w-0 flex-1">
           <div className="mb-1.5 flex flex-wrap items-center gap-2">
-            <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${sev.badge}`}>
+            <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold uppercase ${sev.badge}`}>
               {sev.label}
             </span>
-            <span className="rounded-full border border-[#30363d] bg-[#21262d] px-2 py-0.5 text-[10px] font-semibold text-[#8b949e]">
+            <span className="rounded-full border border-[#30363d] bg-[#21262d] px-2 py-0.5 text-xs font-semibold text-[#8b949e]">
               {categoryLabel[risk.category]}
             </span>
-            <span className="rounded border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 font-mono text-[10px] text-[#58a6ff]">
+            <span className="rounded border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 font-mono text-xs text-[#58a6ff]">
               {risk.file}{risk.line ? `:${risk.line}` : ""}
             </span>
           </div>
 
-          <h4 className="text-sm font-bold leading-snug text-[#c9d1d9]">{risk.title}</h4>
+          <h4 className="text-sm font-semibold leading-snug text-[#c9d1d9]">{risk.title}</h4>
         </div>
 
         <div className="p-1 text-[#8b949e]">
@@ -100,16 +100,16 @@ export default function RiskCard({
 
           {/* Evidence */}
           <div className="space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#8b949e]">证据</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#8b949e]">证据</span>
             <p className="leading-relaxed text-[#8b949e]">{risk.evidence}</p>
           </div>
 
           {/* Suggestion */}
           {suggestion && (
             <div className="space-y-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#8b949e]">修复建议</span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#8b949e]">修复建议</span>
               <p className="leading-relaxed text-[#c9d1d9]">{suggestion.recommendation}</p>
-              <p className="text-[10px] leading-relaxed text-[#8b949e]">{suggestion.rationale}</p>
+              <p className="text-xs leading-relaxed text-[#8b949e]">{suggestion.rationale}</p>
             </div>
           )}
 

@@ -105,7 +105,7 @@ export default function FileTree({
 
               {/* Risk count badge */}
               {riskCount > 0 && (
-                <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#f85149]/10 px-1.5 text-[10px] font-semibold text-[#f85149]">
+                <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#f85149]/10 px-1.5 text-xs font-semibold text-[#f85149]">
                   {riskCount}
                 </span>
               )}

@@ -38,7 +38,7 @@ export default function PrInput({ onAnalyze }: PrInputProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-[560px] mx-auto">
+    <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto">
       <div
         className={[
           "flex overflow-hidden rounded-lg border shadow-lg transition-all duration-200",

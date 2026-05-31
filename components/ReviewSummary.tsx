@@ -44,7 +44,7 @@ export default function ReviewSummary({ summary, generalSuggestions, meta }: Rev
               <span className="rounded-full border border-[#30363d] bg-[#0d1117] px-2 py-0.5 text-xs font-medium text-[#8b949e]">#{meta.pullNumber}</span>
               <span className="text-sm font-semibold text-[#c9d1d9]">@{meta.author}</span>
             </div>
-            <h2 className="mt-1 text-lg font-bold text-[#c9d1d9]">{summary.title}</h2>
+            <h2 className="mt-1 text-lg font-semibold text-[#c9d1d9]">{summary.title}</h2>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-[#8b949e]">
               <span className="font-mono">{meta.owner}/{meta.repo}</span>
             </p>
@@ -53,16 +53,16 @@ export default function ReviewSummary({ summary, generalSuggestions, meta }: Rev
 
         <div className="flex items-center gap-6 border-t border-[#30363d] pt-4 md:border-t-0 md:pt-0 font-mono text-xs text-[#8b949e]">
           <div className="text-center">
-            <p className="font-sans text-[10px] font-semibold text-[#8b949e]">文件</p>
+            <p className="font-sans text-xs font-semibold text-[#8b949e]">文件</p>
             <p className="mt-1 text-sm font-semibold text-[#c9d1d9]">{meta.filesCount}</p>
           </div>
           <div className="text-center">
-            <p className="font-sans text-[10px] font-semibold text-[#3fb950]">新增</p>
-            <p className="mt-1 text-sm font-bold text-[#3fb950]">+{meta.totalAdditions}</p>
+            <p className="font-sans text-xs font-semibold text-[#3fb950]">新增</p>
+            <p className="mt-1 text-sm font-semibold text-[#3fb950]">+{meta.totalAdditions}</p>
           </div>
           <div className="text-center">
-            <p className="font-sans text-[10px] font-semibold text-[#f85149]">删除</p>
-            <p className="mt-1 text-sm font-bold text-[#f85149]">-{meta.totalDeletions}</p>
+            <p className="font-sans text-xs font-semibold text-[#f85149]">删除</p>
+            <p className="mt-1 text-sm font-semibold text-[#f85149]">-{meta.totalDeletions}</p>
           </div>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function ReviewSummary({ summary, generalSuggestions, meta }: Rev
           <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {generalSuggestions.map((suggestion, idx) => (
               <li key={idx} className="group flex items-start gap-3 rounded-md border border-[#30363d] bg-[#21262d] p-3 transition-all hover:border-[#58a6ff]/50 hover:bg-[#1c2128]">
-                <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#58a6ff]/10 text-xs font-bold text-[#58a6ff] group-hover:bg-[#58a6ff] group-hover:text-[#0d1117] transition-all">
+                <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#58a6ff]/10 text-xs font-semibold text-[#58a6ff] group-hover:bg-[#58a6ff] group-hover:text-[#0d1117] transition-all">
                   {idx + 1}
                 </div>
                 <p className="text-sm leading-relaxed text-[#c9d1d9]">{suggestion}</p>

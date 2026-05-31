@@ -86,7 +86,7 @@ export default function DiffViewer({
         className="overflow-auto"
         style={{ maxHeight }}
       >
-        <pre className="m-0 whitespace-pre text-[11px] leading-relaxed font-mono">
+        <pre className="m-0 whitespace-pre text-xs leading-relaxed font-mono">
           {lines.map((line) => (
             <code
               key={line.index}
@@ -95,10 +95,10 @@ export default function DiffViewer({
                 typeStyle[line.type],
               ].join(" ")}
             >
-              <span className="mr-4 inline-block w-4 select-none text-right text-[10px] text-[#57606a]">
+              <span className="mr-4 inline-block w-4 select-none text-right text-xs text-[#57606a]">
                 {line.index + 1}
               </span>
-              <span className="mr-2 inline-block w-3 select-none text-center text-[10px] text-[#8b949e]">
+              <span className="mr-2 inline-block w-3 select-none text-center text-xs text-[#8b949e]">
                 {LinePrefix(line.content, line.type)}
               </span>
               {line.content}

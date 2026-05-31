@@ -297,6 +297,60 @@ describe("analyzePullRequest", () => {
     });
   });
 
+  test("用户补充审查要求会传入上下文构建", async () => {
+    const provider: AiProvider = {
+      analyze: vi.fn().mockResolvedValue(report)
+    };
+    const dependencies = {
+      loadConfig: vi.fn().mockReturnValue(defaultLingQiConfig),
+      fetchGitHubPrData: vi.fn().mockResolvedValue(githubData),
+      buildPrAnalysisContext: vi.fn().mockReturnValue({
+        ...context,
+        userPrompt: "重点检查并发安全"
+      }),
+      createAiProviderFromConfig: vi.fn().mockReturnValue(provider),
+      analyzePrContext: vi.fn().mockResolvedValue(report)
+    };
+
+    await analyzePullRequest({
+      prUrl: "https://github.com/octocat/hello-world/pull/42",
+      userPrompt: "  重点检查并发安全  ",
+      env: {
+        DEEPSEEK_API_KEY: "deepseek-key"
+      },
+      dependencies
+    });
+
+    expect(dependencies.buildPrAnalysisContext).toHaveBeenCalledWith(
+      githubData,
+      {
+        reviewProfile: defaultLingQiConfig.reviewProfile,
+        contextConfig: defaultLingQiConfig.context,
+        userPrompt: "重点检查并发安全"
+      }
+    );
+  });
+
+  test("用户补充审查要求不是字符串时抛出输入错误", async () => {
+    await expect(
+      analyzePullRequest({
+        prUrl: "https://github.com/octocat/hello-world/pull/42",
+        userPrompt: 123,
+        env: {}
+      })
+    ).rejects.toBeInstanceOf(AnalyzePrInputError);
+  });
+
+  test("用户补充审查要求过长时抛出输入错误", async () => {
+    await expect(
+      analyzePullRequest({
+        prUrl: "https://github.com/octocat/hello-world/pull/42",
+        userPrompt: "a".repeat(1001),
+        env: {}
+      })
+    ).rejects.toThrow("用户补充审查要求不能超过 1000 个字符");
+  });
+
   test("GitHub 或 AI 失败时包装为上游错误", async () => {
     await expect(
       analyzePullRequest({

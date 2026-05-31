@@ -1,7 +1,7 @@
 "use client";
 
 import { Award, AlertTriangle, ShieldCheck, Zap, Code2, CheckCircle } from "lucide-react";
-import { RadialBarChart, RadialBar, Cell, ResponsiveContainer, Tooltip, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Dot } from "recharts";
+import { RadialBarChart, RadialBar, Cell, ResponsiveContainer, Tooltip, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 
 export type StatsData = {
   filesChanged: number;
@@ -115,9 +115,6 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
           <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8b949e]">
             <AlertTriangle className="h-3.5 w-3.5 text-[#f85149]" />风险严重度统计
           </h3>
-          {activeFilter?.type === "severity" && (
-            <button onClick={() => onFilterChange?.("clear", null)} className="text-xs font-semibold text-[#58a6ff] hover:underline">[清除筛选]</button>
-          )}
         </div>
 
         {!hasRisks ? (
@@ -186,9 +183,6 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
           <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8b949e]">
             <Zap className="h-3.5 w-3.5 text-[#d29922]" />风险类别分布
           </h3>
-          {activeFilter?.type === "category" && (
-            <button onClick={() => onFilterChange?.("clear", null)} className="text-xs font-semibold text-[#58a6ff] hover:underline">[清除筛选]</button>
-          )}
         </div>
 
         {!hasRisks ? (
@@ -204,27 +198,14 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                 dataKey="category"
                 tick={(props: any) => {
                   const { x, y, payload } = props;
-                  const cat = categoryDefs.find((d) => d.label === payload.value);
-                  const isActive = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
                   return (
                     <text
                       x={x}
                       y={y}
                       textAnchor="middle"
                       dominantBaseline="central"
-                      fill={isActive ? "#58a6ff" : "#8b949e"}
+                      fill="#8b949e"
                       fontSize={12}
-                      fontWeight={isActive ? 700 : 400}
-                      cursor="pointer"
-                      onClick={() => {
-                        if (cat) {
-                          if (isActive) {
-                            onFilterChange?.("clear", null);
-                          } else {
-                            onFilterChange?.("category", cat.key);
-                          }
-                        }
-                      }}
                     >
                       {payload.value}
                     </text>
@@ -238,32 +219,7 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                 fill="#58a6ff"
                 fillOpacity={0.15}
                 strokeWidth={2}
-                dot={({ cx, cy, index }: any) => {
-                  if (cx == null || cy == null) return <></>;
-                  const cat = categoryDefs[index];
-                  const isActiveDot = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
-                  return (
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={4}
-                      fill="#58a6ff"
-                      stroke="#0d1117"
-                      strokeWidth={1}
-                      cursor="pointer"
-                      onClick={(e: any) => {
-                        e.stopPropagation();
-                        if (cat) {
-                          if (isActiveDot) {
-                            onFilterChange?.("clear", null);
-                          } else {
-                            onFilterChange?.("category", cat.key);
-                          }
-                        }
-                      }}
-                    />
-                  );
-                }}
+                dot={{ r: 4, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 1 }}
                 activeDot={{ r: 6, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 2 }}
               />
               <Tooltip

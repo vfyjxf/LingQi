@@ -61,6 +61,7 @@ export function buildReviewPrompt(context: PrAnalysisContext): string {
   return [
     "请基于下面的 GitHub Pull Request 上下文生成 AI Review 报告。",
     "只返回符合 schema 的结构化 Review 报告，不要输出 Markdown 解释。",
+    "所有输出文本必须使用中文，包括 title、overview、summary、evidence、impact、recommendation、rationale 等所有字段。",
     "",
     "分析要求：",
     "- 总结 PR 的主要目的、影响范围和测试情况。",

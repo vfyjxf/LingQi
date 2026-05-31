@@ -1,8 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 import type { LanguageModel } from "ai";
 import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
-import { createVercelAiProvider } from "@/lib/ai/vercel-ai-provider";
+import {
+  createVercelAiProvider,
+  buildReviewPrompt
+} from "@/lib/ai/vercel-ai-provider";
 import type { AiReviewReport } from "@/lib/report/schema";
+import { makeValidReport } from "@/tests/fixtures/report-fixtures";
 
 const context: PrAnalysisContext = {
   pr: {
@@ -30,61 +34,7 @@ const context: PrAnalysisContext = {
   stats: { changedFiles: 1, additions: 42, deletions: 3, changes: 45 }
 };
 
-const report: AiReviewReport = {
-  summary: {
-    title: "新增账单 webhook 处理",
-    overview: "本次 PR 修改账单 API 入口，处理发票支付事件。",
-    changedModules: ["app/api/billing/route.ts"],
-    testSummary: "当前上下文未看到测试文件变更。"
-  },
-  reviewFocus: [
-    {
-      file: "app/api/billing/route.ts",
-      reason: "API webhook 入口对数据一致性和鉴权敏感。",
-      priority: "high"
-    }
-  ],
-  risks: [
-    {
-      severity: "major",
-      confidence: "medium",
-      category: "api",
-      file: "app/api/billing/route.ts",
-      title: "需要确认 webhook 鉴权",
-      evidence: "新增 POST 入口但上下文未显示签名校验。",
-      impact: "未校验的 webhook 可能导致伪造事件。"
-    }
-  ],
-  suggestions: [],
-  groupAnalyses: [
-    {
-      groupId: "billing",
-      groupName: "账单链路",
-      priority: "high",
-      summary: "账单分组新增 webhook 入口，需要确认鉴权和事件幂等。",
-      changedFiles: ["app/api/billing/route.ts"],
-      keyRisks: [
-        {
-          severity: "major",
-          confidence: "medium",
-          category: "api",
-          file: "app/api/billing/route.ts",
-          title: "需要确认 webhook 鉴权",
-          evidence: "新增 POST 入口但上下文未显示签名校验。",
-          impact: "未校验的 webhook 可能导致伪造事件。"
-        }
-      ],
-      reviewSuggestions: [],
-      contextUsed: ["账单链路分组 diff", "风险 hints"],
-      limitations: ["未读取运行时配置"]
-    }
-  ],
-  contextNotes: {
-    contextUsed: ["PR 元信息", "文件 diff", "风险 hints"],
-    limitations: ["未读取运行时配置"],
-    modelStrategy: "使用 Vercel AI SDK 结构化输出"
-  }
-};
+const report: AiReviewReport = makeValidReport();
 
 describe("createVercelAiProvider", () => {
   test("组装 PR Review 提示词并返回结构化报告", async () => {
@@ -167,5 +117,28 @@ describe("createVercelAiProvider", () => {
     expect(prompt).toContain(
       "全局 risks 和 suggestions 应从分组结果中挑选最高价值项"
     );
+  });
+
+  test("提示词包含维度评分规则和锚点", () => {
+    const prompt = buildReviewPrompt(context);
+
+    expect(prompt).toContain("维度评分规则（0-100 分");
+    expect(prompt).toContain("90-100: 该维度无已知风险");
+  });
+
+  test("提示词包含证据要求和严重程度映射", () => {
+    const prompt = buildReviewPrompt(context);
+
+    expect(prompt).toContain("证据要求");
+    expect(prompt).toContain("严重程度映射指引");
+    expect(prompt).toContain("score 0-25: severity 通常为 blocker");
+  });
+
+  test("提示词包含 7 个维度的检查重点", () => {
+    const prompt = buildReviewPrompt(context);
+
+    expect(prompt).toContain("security: 认证");
+    expect(prompt).toContain("data: 数据一致性");
+    expect(prompt).toContain("maintainability: 命名规范");
   });
 });

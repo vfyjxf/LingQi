@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
 import type { AiReviewReport } from "@/lib/report/schema";
 import { buildReviewDraft } from "@/lib/review-draft/build-review-draft";
+import { makeValidReport } from "@/tests/fixtures/report-fixtures";
 
 const context: PrAnalysisContext = {
   pr: {
@@ -34,23 +35,12 @@ const context: PrAnalysisContext = {
   }
 };
 
-const baseReport: AiReviewReport = {
-  summary: {
-    title: "更新鉴权流程",
-    overview: "本次 PR 更新 session refresh 逻辑。",
-    changedModules: ["src/auth/session.ts"],
-    testSummary: "未看到测试文件变更。"
-  },
-  reviewFocus: [],
+const baseReport = makeValidReport({
   risks: [],
   suggestions: [],
   groupAnalyses: [],
-  contextNotes: {
-    contextUsed: ["PR 元信息", "文件 diff"],
-    limitations: [],
-    modelStrategy: "DeepSeek 结构化输出"
-  }
-};
+  reviewFocus: []
+});
 
 describe("buildReviewDraft", () => {
   test("把高置信风险和建议转换成可发布草稿", () => {

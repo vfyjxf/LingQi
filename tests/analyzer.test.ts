@@ -3,6 +3,7 @@ import type { AiProvider } from "@/lib/ai/provider";
 import { analyzePrContext } from "@/lib/analysis/analyzer";
 import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
 import type { AiReviewReport } from "@/lib/report/schema";
+import { makeValidReport } from "@/tests/fixtures/report-fixtures";
 
 const context: PrAnalysisContext = {
   pr: {
@@ -30,29 +31,7 @@ const context: PrAnalysisContext = {
   stats: { changedFiles: 1, additions: 20, deletions: 4, changes: 24 }
 };
 
-const validReport: AiReviewReport = {
-  summary: {
-    title: "新增后台鉴权保护",
-    overview: "本次 PR 修改后台页面入口，增加鉴权保护相关逻辑。",
-    changedModules: ["app/admin/page.tsx"],
-    testSummary: "当前上下文未看到测试文件变更。"
-  },
-  reviewFocus: [
-    {
-      file: "app/admin/page.tsx",
-      reason: "后台入口属于权限敏感路径。",
-      priority: "high"
-    }
-  ],
-  risks: [],
-  suggestions: [],
-  groupAnalyses: [],
-  contextNotes: {
-    contextUsed: ["PR 元信息", "文件 diff", "提交信息"],
-    limitations: ["未读取完整仓库代码"],
-    modelStrategy: "通过 provider 抽象生成结构化 Review 报告"
-  }
-};
+const validReport: AiReviewReport = makeValidReport();
 
 const groupedContext: PrAnalysisContext = {
   ...context,

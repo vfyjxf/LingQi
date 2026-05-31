@@ -3,84 +3,9 @@ import {
   AiReviewReportSchema,
   parseAiReviewReport
 } from "@/lib/report/schema";
+import { makeValidReport } from "@/tests/fixtures/report-fixtures";
 
-const validReport = {
-  summary: {
-    title: "修复登录态刷新逻辑",
-    overview: "这个 PR 调整了 session 刷新流程，并补充了失败场景处理。",
-    changedModules: ["auth", "api"],
-    testSummary: "新增 auth refresh 的单元测试。"
-  },
-  reviewFocus: [
-    {
-      file: "src/auth/session.ts",
-      reason: "修改了登录态刷新入口，影响认证流程。",
-      priority: "high"
-    }
-  ],
-  risks: [
-    {
-      severity: "major",
-      confidence: "high",
-      category: "security",
-      file: "src/auth/session.ts",
-      line: 42,
-      title: "刷新 token 前需要确认用户状态",
-      evidence: "diff 修改了 refreshSession 分支。",
-      impact: "禁用用户可能继续获得新 token。"
-    }
-  ],
-  suggestions: [
-    {
-      severity: "major",
-      confidence: "high",
-      file: "src/auth/session.ts",
-      line: 42,
-      problem: "刷新 token 时没有重新检查用户状态。",
-      recommendation: "刷新前查询用户状态，并拒绝 disabled 用户。",
-      rationale: "这能避免已禁用账号继续获得有效会话。"
-    }
-  ],
-  groupAnalyses: [
-    {
-      groupId: "auth",
-      groupName: "认证链路",
-      priority: "high",
-      summary: "认证分组修改了 session 刷新流程，需要重点确认禁用账号处理。",
-      changedFiles: ["src/auth/session.ts"],
-      keyRisks: [
-        {
-          severity: "major",
-          confidence: "high",
-          category: "security",
-          file: "src/auth/session.ts",
-          line: 42,
-          title: "刷新 token 前需要确认用户状态",
-          evidence: "diff 修改了 refreshSession 分支。",
-          impact: "禁用用户可能继续获得新 token。"
-        }
-      ],
-      reviewSuggestions: [
-        {
-          severity: "major",
-          confidence: "high",
-          file: "src/auth/session.ts",
-          line: 42,
-          problem: "刷新 token 时没有重新检查用户状态。",
-          recommendation: "刷新前查询用户状态，并拒绝 disabled 用户。",
-          rationale: "这能避免已禁用账号继续获得有效会话。"
-        }
-      ],
-      contextUsed: ["src/auth/session.ts diff", "认证分组 reviewPrompts"],
-      limitations: ["未读取完整调用链"]
-    }
-  ],
-  contextNotes: {
-    contextUsed: ["PR diff", "changed files"],
-    limitations: ["未读取完整调用链"],
-    modelStrategy: "快速摘要模型生成概览，强推理模型分析高风险片段。"
-  }
-};
+const validReport = makeValidReport();
 
 describe("AiReviewReportSchema", () => {
   test("接受合法的结构化 Review 报告", () => {
@@ -198,5 +123,42 @@ describe("AiReviewReportSchema", () => {
     expect(
       parsed.groupAnalyses[0].reviewSuggestions[0].line
     ).toBeUndefined();
+  });
+
+  test("接受包含 7 个维度评分的合法报告", () => {
+    const report = makeValidReport();
+    const parsed = AiReviewReportSchema.parse(report);
+    expect(parsed.dimensionScores).toHaveLength(7);
+  });
+
+  test("拒绝只有 6 个维度评分的报告", () => {
+    const report = makeValidReport({
+      dimensionScores: makeValidReport().dimensionScores.slice(0, 6)
+    });
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
+  });
+
+  test("拒绝维度评分超出 0-100 范围 (>100)", () => {
+    const report = makeValidReport();
+    report.dimensionScores[0].score = 101;
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
+  });
+
+  test("拒绝维度评分为负数", () => {
+    const report = makeValidReport();
+    report.dimensionScores[0].score = -1;
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
+  });
+
+  test("拒绝维度评分缺少证据", () => {
+    const report = makeValidReport();
+    report.dimensionScores[0].evidence = "";
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
+  });
+
+  test("拒绝非法的严重程度值", () => {
+    const report = makeValidReport();
+    report.dimensionScores[0].severity = "critical" as never;
+    expect(() => AiReviewReportSchema.parse(report)).toThrow();
   });
 });

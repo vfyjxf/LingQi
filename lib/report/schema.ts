@@ -19,6 +19,26 @@ export const RiskCategorySchema = z.enum([
   "maintainability"
 ]);
 
+export const DimensionScoreSchema = z.object({
+  dimension: RiskCategorySchema.describe(
+    "评分的维度: security/data/stability/performance/api/testing/maintainability"
+  ),
+  score: z.number().int().min(0).max(100).describe(
+    "0-100 质量评分: 0=阻断性问题, 100=无风险"
+  ),
+  severity: SeveritySchema.describe(
+    "该维度最严重问题的级别: blocker/major/minor/nit"
+  ),
+  reasoning: z.string().min(1).describe(
+    "先分析该维度发现的具体问题，再给出综合评分。这是推理过程。"
+  ),
+  evidence: z.string().min(1).describe(
+    "引用具体文件名、行号和代码片段作为评分依据。不能是笼统描述。"
+  )
+});
+
+export type DimensionScore = z.infer<typeof DimensionScoreSchema>;
+
 export const RiskItemSchema = z.object({
   severity: SeveritySchema,
   confidence: ConfidenceSchema,
@@ -69,6 +89,9 @@ export const AiReviewReportSchema = z.object({
   risks: z.array(RiskItemSchema),
   suggestions: z.array(SuggestionItemSchema),
   groupAnalyses: z.array(GroupAnalysisSchema),
+  dimensionScores: z.array(DimensionScoreSchema).length(7).describe(
+    "7 个维度的评分数组: security/data/stability/performance/api/testing/maintainability 各一个"
+  ),
   contextNotes: z.object({
     contextUsed: z.array(NonEmptyStringSchema),
     limitations: z.array(NonEmptyStringSchema),

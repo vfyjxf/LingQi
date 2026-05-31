@@ -112,13 +112,24 @@ describe("analyzePrContext", () => {
     await expect(analyzePrContext(context, provider)).rejects.toThrow();
   });
 
-  test("provider 返回不符合分组契约的报告时抛出错误", async () => {
+  test("provider 返回缺失分组时补齐分组并记录限制", async () => {
     const provider: AiProvider = {
       analyze: vi.fn().mockResolvedValue(validReport)
     };
 
-    await expect(analyzePrContext(groupedContext, provider)).rejects.toThrow(
-      "AI 分组分析缺少配置中的分组：admin"
+    const result = await analyzePrContext(groupedContext, provider);
+
+    expect(result.groupAnalyses).toHaveLength(1);
+    expect(result.groupAnalyses[0]).toMatchObject({
+      groupId: "admin",
+      groupName: "后台权限",
+      priority: "high",
+      changedFiles: [],
+      keyRisks: [],
+      reviewSuggestions: []
+    });
+    expect(result.contextNotes.limitations).toContain(
+      "AI 未返回分组 admin，已补充为空分组。"
     );
   });
 });

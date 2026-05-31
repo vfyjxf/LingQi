@@ -14,6 +14,14 @@ LingQi 是一个面向 GitHub Pull Request 的 AI Review 助手。
 - **生成 Review 建议**：输出带严重级别、置信度和证据的建议。
 - **说明上下文限制**：明确本次分析用了哪些上下文，哪些地方需要人工判断。
 
+## 当前后端能力
+
+- `POST /api/analyze-pr`：输入 GitHub PR 链接，返回结构化报告、PR diff、Review 草稿、Review 提交 dry-run payload 和上下文审计摘要。
+- `GET /api/health/config`：检查配置文件、AI 模型密钥、GitHub Token 和 Review Profile 状态，便于本地演示前排查运行环境。
+- Review 草稿只生成预览和 dry-run payload，不会自动写回 GitHub。
+- 上下文构建会按 `reviewProfile` 分组，并记录文件省略、patch 截断和大 PR 限制。
+- 分组分析结果会校验是否覆盖配置中的分组，避免模型编造分组或跨组引用文件。
+
 ## 当前技术方案
 
 - **Next.js**：前后端一体，负责本地页面和 API Route。

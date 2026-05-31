@@ -49,11 +49,11 @@ describe("ReviewProgress", () => {
       />
     );
 
-    expect(screen.getByText("Review complete")).toBeInTheDocument();
-    expect(screen.getByText("5 files changed")).toBeInTheDocument();
+    expect(screen.getByText("评审完成")).toBeInTheDocument();
+    expect(screen.getByText("5 个文件变更")).toBeInTheDocument();
     expect(screen.getByText("+120")).toBeInTheDocument();
     expect(screen.getByText("-45")).toBeInTheDocument();
-    expect(screen.getByText("3 risks found")).toBeInTheDocument();
+    expect(screen.getByText("3 个风险")).toBeInTheDocument();
   });
 
   test("done 状态无 stats 不渲染统计", () => {
@@ -73,7 +73,7 @@ describe("ReviewProgress", () => {
       />
     );
 
-    expect(screen.getByText("Error occurred")).toBeInTheDocument();
+    expect(screen.getByText("发生错误")).toBeInTheDocument();
     expect(screen.getByText("GitHub API 请求失败。")).toBeInTheDocument();
     expect(
       screen.getByText("请检查 GITHUB_TOKEN 是否有效。")

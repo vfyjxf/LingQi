@@ -1,6 +1,9 @@
 import { describe, expect, test } from "vitest";
 import type { PrAnalysisContext } from "@/lib/analysis/context-builder";
-import { validateGroupAnalysisContract } from "@/lib/analysis/group-analysis-contract";
+import {
+  normalizeGroupAnalysisContract,
+  validateGroupAnalysisContract
+} from "@/lib/analysis/group-analysis-contract";
 import type { AiReviewReport } from "@/lib/report/schema";
 
 const context: PrAnalysisContext = {
@@ -211,5 +214,114 @@ describe("validateGroupAnalysisContract", () => {
         context
       )
     ).toThrow("AI 分组分析 auth 引用了不属于该分组的文件");
+  });
+
+  test("规整分组输出时过滤跨组文件并记录限制", () => {
+    const normalized = normalizeGroupAnalysisContract(
+      {
+        ...report,
+        reviewFocus: [
+          { file: "app/auth/guard.ts", reason: "认证改动", priority: "high" },
+          { file: "docs/missing.md", reason: "不存在", priority: "low" }
+        ],
+        risks: [
+          {
+            severity: "major",
+            confidence: "high",
+            category: "security",
+            file: "app/auth/guard.ts",
+            line: 1,
+            title: "认证风险",
+            evidence: "认证 diff",
+            impact: "权限绕过"
+          },
+          {
+            severity: "major",
+            confidence: "high",
+            category: "security",
+            file: "docs/missing.md",
+            line: 1,
+            title: "不存在文件",
+            evidence: "无",
+            impact: "无"
+          }
+        ],
+        groupAnalyses: [
+          {
+            ...report.groupAnalyses[0],
+            changedFiles: ["app/auth/guard.ts", "app/api/billing/route.ts"],
+            keyRisks: [
+              {
+                severity: "major",
+                confidence: "high",
+                category: "security",
+                file: "app/api/billing/route.ts",
+                line: 1,
+                title: "跨组风险",
+                evidence: "跨组引用",
+                impact: "不应属于认证分组"
+              }
+            ],
+            reviewSuggestions: [
+              {
+                severity: "major",
+                confidence: "high",
+                file: "app/auth/guard.ts",
+                line: 1,
+                problem: "认证建议",
+                recommendation: "补充鉴权",
+                rationale: "认证文件属于该分组"
+              }
+            ]
+          },
+          report.groupAnalyses[1]
+        ]
+      },
+      context
+    );
+
+    expect(normalized.reviewFocus).toHaveLength(1);
+    expect(normalized.risks).toHaveLength(1);
+    expect(normalized.groupAnalyses[0].changedFiles).toEqual([
+      "app/auth/guard.ts"
+    ]);
+    expect(normalized.groupAnalyses[0].keyRisks).toEqual([]);
+    expect(normalized.groupAnalyses[0].reviewSuggestions).toHaveLength(1);
+    expect(normalized.groupAnalyses[0].limitations.join("\n")).toContain(
+      "AI 引用了不属于该分组的文件"
+    );
+    expect(normalized.contextNotes.limitations).toEqual([]);
+  });
+
+  test("规整分组输出时补齐缺失分组并忽略未知分组", () => {
+    const normalized = normalizeGroupAnalysisContract(
+      {
+        ...report,
+        groupAnalyses: [
+          report.groupAnalyses[0],
+          {
+            ...report.groupAnalyses[0],
+            groupId: "security",
+            groupName: "安全"
+          }
+        ]
+      },
+      context
+    );
+
+    expect(normalized.groupAnalyses.map((group) => group.groupId)).toEqual([
+      "auth",
+      "billing"
+    ]);
+    expect(normalized.groupAnalyses[1].changedFiles).toEqual([]);
+    expect(normalized.groupAnalyses[1].limitations).toContain(
+      "模型未返回该分组分析，已由系统补充为空结果。"
+    );
+    expect(normalized.contextNotes.limitations.join("\n")).toContain(
+      "AI 输出了未知分组 security，已忽略。"
+    );
+    expect(normalized.contextNotes.limitations.join("\n")).toContain(
+      "AI 未返回分组 billing，已补充为空分组。"
+    );
   });
 });

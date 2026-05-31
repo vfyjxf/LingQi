@@ -19,7 +19,7 @@ const riskCounts: Record<string, number> = {
 describe("FileTree", () => {
   test("显示文件总数", () => {
     render(<FileTree files={mockFiles} riskCounts={{}} />);
-    expect(screen.getByText("Changed Files (4)")).toBeInTheDocument();
+    expect(screen.getByText("变更文件 (4)")).toBeInTheDocument();
   });
 
   test("显示所有文件名", () => {
@@ -42,7 +42,7 @@ describe("FileTree", () => {
     const user = userEvent.setup();
     render(<FileTree files={mockFiles} riskCounts={{}} />);
 
-    const input = screen.getByPlaceholderText("Search files...");
+    const input = screen.getByPlaceholderText("搜索文件...");
     await user.type(input, "login");
 
     expect(screen.getByText("login.ts")).toBeInTheDocument();
@@ -53,7 +53,7 @@ describe("FileTree", () => {
     const user = userEvent.setup();
     render(<FileTree files={mockFiles} riskCounts={{}} />);
 
-    const input = screen.getByPlaceholderText("Search files...");
+    const input = screen.getByPlaceholderText("搜索文件...");
     await user.type(input, "zzz");
 
     expect(screen.getByText("没有匹配的文件")).toBeInTheDocument();

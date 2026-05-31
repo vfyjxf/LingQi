@@ -80,12 +80,12 @@ export default function RiskCard({
             <span className="rounded-full border border-[#30363d] bg-[#21262d] px-2 py-0.5 text-xs font-semibold text-[#8b949e]">
               {categoryLabel[risk.category]}
             </span>
-            <span className="rounded border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 font-mono text-xs text-[#58a6ff]">
+            <span className="block max-w-[16rem] truncate rounded border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 font-mono text-xs text-[#58a6ff]" title={`${risk.file}${risk.line ? `:${risk.line}` : ""}`}>
               {risk.file}{risk.line ? `:${risk.line}` : ""}
             </span>
           </div>
 
-          <h4 className="text-sm font-semibold leading-snug text-[#c9d1d9]">{risk.title}</h4>
+          <h4 className="truncate text-sm font-semibold leading-snug text-[#c9d1d9]" title={risk.title}>{risk.title}</h4>
         </div>
 
         <div className="p-1 text-[#8b949e]">
@@ -97,20 +97,20 @@ export default function RiskCard({
       {expanded && (
         <div className="space-y-4 border-t border-[#30363d] px-5 pb-5 pt-1 text-xs">
           {/* Impact */}
-          <p className="leading-relaxed text-[#8b949e]">{risk.impact}</p>
+          <p className="line-clamp-3 leading-relaxed text-[#8b949e]" title={risk.impact}>{risk.impact}</p>
 
           {/* Evidence */}
           <div className="space-y-1">
             <span className="text-xs font-semibold uppercase tracking-widest text-[#8b949e]">证据</span>
-            <p className="leading-relaxed text-[#8b949e]">{risk.evidence}</p>
+            <p className="line-clamp-3 leading-relaxed text-[#8b949e]" title={risk.evidence}>{risk.evidence}</p>
           </div>
 
           {/* Suggestion */}
           {suggestion && (
             <div className="space-y-1">
               <span className="text-xs font-semibold uppercase tracking-widest text-[#8b949e]">修复建议</span>
-              <p className="leading-relaxed text-[#c9d1d9]">{suggestion.recommendation}</p>
-              <p className="text-xs leading-relaxed text-[#8b949e]">{suggestion.rationale}</p>
+              <p className="line-clamp-3 leading-relaxed text-[#c9d1d9]" title={suggestion.recommendation}>{suggestion.recommendation}</p>
+              <p className="line-clamp-3 text-xs leading-relaxed text-[#8b949e]" title={suggestion.rationale}>{suggestion.rationale}</p>
             </div>
           )}
 

@@ -13,6 +13,17 @@ export type StatsData = {
   minorCount: number;
   nitCount: number;
   categoryCounts?: Record<string, number>;
+  dimensionScores?: DimensionScoreData[];
+};
+
+export type DimensionScoreData = {
+  dimension: string;
+  label: string;
+  score: number;
+  severity: string;
+  evidence: string;
+  color: string;
+  icon: React.ComponentType<{ className?: string }>;
 };
 
 export type FilterState = {
@@ -27,13 +38,10 @@ type StatsPanelProps = {
 };
 
 /* ---- Quality score ---- */
-function calcQualityScore(stats: StatsData) {
-  const deductions =
-    stats.blockerCount * 20 +
-    stats.majorCount * 12 +
-    stats.minorCount * 5 +
-    stats.nitCount * 2;
-  return Math.max(0, 100 - deductions);
+export function deriveAggregateScore(dimensionScores?: DimensionScoreData[]): number {
+  if (!dimensionScores || dimensionScores.length === 0) return 0;
+  const sum = dimensionScores.reduce((acc, ds) => acc + ds.score, 0);
+  return Math.round(sum / dimensionScores.length);
 }
 
 function gradeInfo(score: number) {
@@ -63,7 +71,7 @@ const categoryDefs = [
 ];
 
 export default function StatsPanel({ stats, activeFilter, onFilterChange }: StatsPanelProps) {
-  const score = calcQualityScore(stats);
+  const score = deriveAggregateScore(stats.dimensionScores);
   const grade = gradeInfo(score);
 
   const sevCounts: Record<string, number> = {

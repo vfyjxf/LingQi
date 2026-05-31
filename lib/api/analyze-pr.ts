@@ -2,6 +2,10 @@ import { createAiProviderFromConfig } from "@/lib/ai/provider-factory";
 import type { AiProvider } from "@/lib/ai/provider";
 import { analyzePrContext } from "@/lib/analysis/analyzer";
 import {
+  buildContextAuditSummary,
+  type ContextAuditSummary
+} from "@/lib/analysis/context-audit";
+import {
   buildPrAnalysisContext,
   type PrAnalysisContext
 } from "@/lib/analysis/context-builder";
@@ -60,6 +64,7 @@ export type AnalyzePullRequestResult = {
     additions: number;
     deletions: number;
     diffText: string;
+    audit: ContextAuditSummary;
   };
 };
 
@@ -132,7 +137,8 @@ export async function analyzePullRequest({
         changedFiles: context.stats.changedFiles,
         additions: context.stats.additions,
         deletions: context.stats.deletions,
-        diffText: buildDiffText(context.files)
+        diffText: buildDiffText(context.files),
+        audit: buildContextAuditSummary(context.contextBundle)
       }
     };
   } catch (error) {

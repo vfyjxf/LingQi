@@ -159,13 +159,15 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                     border: "1px solid #30363d",
                     borderRadius: "6px",
                     fontSize: "12px",
-                    color: "#ffffff",
                   }}
+                  labelStyle={{ display: "none" }}
+                  itemStyle={{ color: "#ffffff" }}
+                  separator=""
                   formatter={(value, _name, props) => {
                     const total = severityRadialData.reduce((sum, d) => sum + d.value, 0) || 1;
                     const pct = ((Number(value) / total) * 100).toFixed(1);
                     const label = (props as any)?.payload?.name ?? "";
-                    return [`${label}：${value} 项 (${pct}%)`, null];
+                    return [`${label}：${value} 项 (${pct}%)`, ""];
                   }}
                 />
               </RadialBarChart>

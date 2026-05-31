@@ -6,6 +6,12 @@ LingQi 是一个面向 GitHub Pull Request 的 AI Review 助手。
 
 当前版本定位为一个本地运行的 Web 工具：输入 GitHub PR 链接，选择 reviewer，生成一份结构化 Review 报告，并在 diff 视图中预览可写回 GitHub Review 的评论草稿。
 
+## 演示视频
+
+- 文件：`Timeline 1.mp4`
+- 链接：https://pan.baidu.com/s/1t09OntnMqArndyzdtREmqg?pwd=ttsq
+- 提取码：`ttsq`
+
 ## 它要做什么
 
 - **总结 PR**：提炼改动目的、影响范围和关键文件。

@@ -1,7 +1,9 @@
 import type {
   FetchGitHubPrDataParams,
   GitHubClientOptions,
-  GitHubPrData
+  GitHubPrData,
+  SubmitGitHubReviewParams,
+  SubmittedGitHubReview
 } from "./github-types";
 
 type GitHubPullResponse = {
@@ -29,6 +31,12 @@ type GitHubCommitResponse = {
   commit: {
     message: string;
   };
+};
+
+type GitHubReviewResponse = {
+  id: number;
+  html_url: string;
+  state: string;
 };
 
 export async function fetchGitHubPrData(
@@ -81,6 +89,33 @@ export async function fetchGitHubPrData(
       sha: commit.sha,
       message: commit.commit.message
     }))
+  };
+}
+
+export async function submitGitHubReview(
+  params: SubmitGitHubReviewParams,
+  options: GitHubClientOptions = {}
+): Promise<SubmittedGitHubReview> {
+  if (!options.token?.trim()) {
+    throw new Error("缺少 GITHUB_TOKEN，无法写入 GitHub Review");
+  }
+
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const url = `https://api.github.com/repos/${params.owner}/${params.repo}/pulls/${params.pullNumber}/reviews`;
+  const response = await fetchJson<GitHubReviewResponse>(fetchImpl, url, {
+    ...createRequestInit(options.token),
+    method: "POST",
+    body: JSON.stringify({
+      event: params.event,
+      body: params.body,
+      comments: params.comments
+    })
+  });
+
+  return {
+    id: response.id,
+    htmlUrl: response.html_url,
+    state: response.state
   };
 }
 

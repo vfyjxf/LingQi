@@ -73,7 +73,7 @@ describe("DiffViewer", () => {
 
   test("在匹配代码行下展示 inline review 卡片并触发操作", async () => {
     const user = userEvent.setup();
-    const onPublishReview = vi.fn();
+    const onTogglePendingReview = vi.fn();
 
     render(
       <DiffViewer
@@ -89,16 +89,41 @@ describe("DiffViewer", () => {
             source: "risk"
           }
         ]}
-        onPublishReview={onPublishReview}
+        onTogglePendingReview={onTogglePendingReview}
       />
     );
 
     expect(screen.getByText("AI 风险评论")).toBeInTheDocument();
     expect(screen.getByText("需要确认 token 存在后再写入 session。")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /写入 GitHub Review/ }));
+    await user.click(screen.getByRole("button", { name: "加入 Review" }));
 
-    expect(onPublishReview).toHaveBeenCalledTimes(1);
+    expect(onTogglePendingReview).toHaveBeenCalledTimes(1);
+  });
+
+  test("已选择的 inline review 显示移出 Review 操作", () => {
+    render(
+      <DiffViewer
+        diffText={mockDiff}
+        selectedReviewIds={["review-1"]}
+        inlineReviews={[
+          {
+            id: "review-1",
+            path: "src/auth.ts",
+            line: 10,
+            title: "AI 风险评论",
+            body: "需要确认 token 存在后再写入 session。",
+            canPublish: true,
+            source: "risk"
+          }
+        ]}
+      />
+    );
+
+    expect(screen.getByText("已加入 Review")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /移出 Review/ })
+    ).toBeInTheDocument();
   });
 
   test("inline review 渲染受控 markdown 粗体内容", () => {

@@ -16,6 +16,7 @@ import {
   type InlineReviewItem
 } from "@/components/DiffViewer";
 import type { AnalyzePullRequestResult } from "@/lib/api/analyze-pr";
+import type { ReviewSubmitPayloadComment } from "@/lib/review-draft/schema";
 import ReviewSummary from "@/components/ReviewSummary";
 import type { ReviewSummaryData, ReviewSummaryMeta } from "@/components/ReviewSummary";
 import { parsePrUrl } from "@/lib/github/parse-pr-url";
@@ -31,6 +32,8 @@ import {
   ExternalLink,
   BarChart3,
   ShieldAlert,
+  Send,
+  X,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -179,6 +182,10 @@ export default function HomePage() {
     line?: number;
   } | null>(null);
   const [reviewActionMessage, setReviewActionMessage] = useState<string | null>(null);
+  const [pendingReviewIds, setPendingReviewIds] = useState<string[]>([]);
+  const [reviewSubmitStatus, setReviewSubmitStatus] = useState<
+    "idle" | "submitting"
+  >("idle");
 
   function handleFilterChange(type: "category" | "severity" | "clear", value: string | null) {
     if (type === "clear") {
@@ -246,6 +253,8 @@ export default function HomePage() {
     setErrorMessage(null);
     setSelectedReviewTarget(null);
     setReviewActionMessage(null);
+    setPendingReviewIds([]);
+    setReviewSubmitStatus("idle");
   }
 
   const displayStats = buildStatsData(analysisResult) ?? demoStats;
@@ -276,10 +285,71 @@ export default function HomePage() {
     setReviewActionMessage(`已在 ${item.path}${item.line ? `:${item.line}` : ""} 打开补充 comment 草稿。`);
   }
 
-  function handlePublishReview(item: InlineReviewItem) {
-    setReviewActionMessage(
-      `dry-run：将写入 ${item.path}${item.line ? `:${item.line}` : ""} 的 GitHub Review 评论已准备好。`
+  function handleTogglePendingReview(item: InlineReviewItem) {
+    if (item.canPublish === false) {
+      setReviewActionMessage(item.blockedReason ?? "该评论暂不能加入 Review。");
+      return;
+    }
+
+    setPendingReviewIds((current) =>
+      current.includes(item.id)
+        ? current.filter((id) => id !== item.id)
+        : [...current, item.id]
     );
+  }
+
+  const pendingReviewItems = inlineReviews.filter((item) =>
+    pendingReviewIds.includes(item.id)
+  );
+
+  async function handleSubmitPendingReview() {
+    if (!analysisResult || pendingReviewItems.length === 0) return;
+
+    const comments = pendingReviewItems
+      .filter((item): item is InlineReviewItem & { line: number } => typeof item.line === "number")
+      .map(
+        (item): ReviewSubmitPayloadComment => ({
+          path: item.path,
+          line: item.line,
+          side: "RIGHT",
+          body: item.body
+        })
+      );
+
+    if (comments.length === 0) {
+      setReviewActionMessage("没有可提交的行级 Review 评论。");
+      return;
+    }
+
+    setReviewSubmitStatus("submitting");
+    try {
+      const response = await fetch("/api/submit-review", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          owner: analysisResult.reviewSubmitPlan.owner,
+          repo: analysisResult.reviewSubmitPlan.repo,
+          pullNumber: analysisResult.reviewSubmitPlan.pullNumber,
+          body: buildPendingReviewBody(pendingReviewItems),
+          comments,
+          dryRun: true
+        })
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error ?? "GitHub Review 写入失败");
+      }
+
+      setReviewActionMessage(
+        `dry-run：已准备一次性提交 ${comments.length} 条 Review 评论。`
+      );
+    } catch (error) {
+      setReviewActionMessage(
+        error instanceof Error ? error.message : "GitHub Review 写入失败"
+      );
+    } finally {
+      setReviewSubmitStatus("idle");
+    }
   }
 
   const header = (
@@ -481,8 +551,9 @@ export default function HomePage() {
                   diffText={displayDiff}
                   selectedTarget={selectedReviewTarget}
                   inlineReviews={inlineReviews}
+                  selectedReviewIds={pendingReviewIds}
                   onAddComment={handleAddComment}
-                  onPublishReview={handlePublishReview}
+                  onTogglePendingReview={handleTogglePendingReview}
                 />
               </main>
               <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-6rem)] overflow-y-auto sticky top-[var(--header-height)] flex flex-col gap-4">
@@ -491,6 +562,60 @@ export default function HomePage() {
                     {reviewActionMessage}
                   </div>
                 )}
+                <section className="rounded-md border border-[#30363d] bg-[#161b22]">
+                  <div className="flex items-center justify-between gap-3 border-b border-[#30363d] px-3 py-2">
+                    <h3 className="text-xs font-semibold text-[#c9d1d9]">
+                      Pending Review ({pendingReviewItems.length})
+                    </h3>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-[#238636] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:bg-[#21262d] disabled:text-[#57606a] focus-visible:ring-2 focus-visible:ring-cyan-400"
+                      disabled={
+                        pendingReviewItems.length === 0 ||
+                        reviewSubmitStatus === "submitting"
+                      }
+                      onClick={handleSubmitPendingReview}
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                      {reviewSubmitStatus === "submitting"
+                        ? "提交中..."
+                        : "提交 Review"}
+                    </button>
+                  </div>
+                  <div className="space-y-2 px-3 py-2">
+                    {pendingReviewItems.length === 0 ? (
+                      <p className="text-xs text-[#8b949e]">
+                        从 diff 行内卡片选择要一起提交的 Review 评论。
+                      </p>
+                    ) : (
+                      pendingReviewItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-md border border-[#30363d] bg-[#0d1117] px-2 py-2 text-xs"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-[#c9d1d9]">
+                                {item.title}
+                              </p>
+                              <p className="mt-0.5 font-mono text-[#8b949e]">
+                                {item.path}:{item.line}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              className="rounded p-1 text-[#8b949e] hover:bg-[#21262d] hover:text-[#c9d1d9] focus-visible:ring-2 focus-visible:ring-cyan-400"
+                              aria-label="移出 Pending Review"
+                              onClick={() => handleTogglePendingReview(item)}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </section>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <h2 className="text-sm font-semibold text-[#c9d1d9]">
@@ -726,4 +851,14 @@ function buildInlineReviews(
       canPublish: true,
       source: "risk"
     }));
+}
+
+function buildPendingReviewBody(items: InlineReviewItem[]): string {
+  return [
+    "LingQi 已整理本次 AI Review 评论。",
+    "",
+    `本次提交 ${items.length} 条行级 Review 评论。`,
+    "",
+    "请结合 diff 上下文确认后处理。"
+  ].join("\n");
 }

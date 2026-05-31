@@ -25,8 +25,9 @@ type DiffViewerProps = {
     line?: number;
   } | null;
   inlineReviews?: InlineReviewItem[];
+  selectedReviewIds?: string[];
   onAddComment?: (item: InlineReviewItem) => void;
-  onPublishReview?: (item: InlineReviewItem) => void;
+  onTogglePendingReview?: (item: InlineReviewItem) => void;
 };
 
 function classifyLine(line: string): {
@@ -78,8 +79,9 @@ export default function DiffViewer({
   maxHeight = "600px",
   selectedTarget,
   inlineReviews = [],
+  selectedReviewIds = [],
   onAddComment,
-  onPublishReview,
+  onTogglePendingReview,
 }: DiffViewerProps) {
   const [expandedReviews, setExpandedReviews] = useState<Record<string, boolean>>({});
   const lineRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -133,6 +135,7 @@ export default function DiffViewer({
               line={line}
               selectedTarget={selectedTarget}
               reviews={reviewsByLocation.get(toLocationKey(line.path, line.newLine)) ?? []}
+              selectedReviewIds={selectedReviewIds}
               expandedReviews={expandedReviews}
               setExpandedReviews={setExpandedReviews}
               setLineRef={(element) => {
@@ -141,7 +144,7 @@ export default function DiffViewer({
                 }
               }}
               onAddComment={onAddComment}
-              onPublishReview={onPublishReview}
+              onTogglePendingReview={onTogglePendingReview}
             />
           ))}
         </pre>
@@ -154,20 +157,22 @@ function DiffCodeLine({
   line,
   selectedTarget,
   reviews,
+  selectedReviewIds,
   expandedReviews,
   setExpandedReviews,
   setLineRef,
   onAddComment,
-  onPublishReview,
+  onTogglePendingReview,
 }: {
   line: DiffLine;
   selectedTarget?: DiffViewerProps["selectedTarget"];
   reviews: InlineReviewItem[];
+  selectedReviewIds: string[];
   expandedReviews: Record<string, boolean>;
   setExpandedReviews: (next: Record<string, boolean>) => void;
   setLineRef: (element: HTMLElement | null) => void;
   onAddComment?: (item: InlineReviewItem) => void;
-  onPublishReview?: (item: InlineReviewItem) => void;
+  onTogglePendingReview?: (item: InlineReviewItem) => void;
 }) {
   const isSelected = isSelectedLine(line, selectedTarget);
 
@@ -197,6 +202,7 @@ function DiffCodeLine({
           <InlineReviewCard
             key={review.id}
             review={review}
+            selected={selectedReviewIds.includes(review.id)}
             expanded={expanded}
             onToggle={() =>
               setExpandedReviews({
@@ -205,7 +211,7 @@ function DiffCodeLine({
               })
             }
             onAddComment={onAddComment}
-            onPublishReview={onPublishReview}
+            onTogglePendingReview={onTogglePendingReview}
           />
         );
       })}
@@ -232,16 +238,18 @@ function isSelectedLine(
 
 function InlineReviewCard({
   review,
+  selected,
   expanded,
   onToggle,
   onAddComment,
-  onPublishReview,
+  onTogglePendingReview,
 }: {
   review: InlineReviewItem;
+  selected: boolean;
   expanded: boolean;
   onToggle: () => void;
   onAddComment?: (item: InlineReviewItem) => void;
-  onPublishReview?: (item: InlineReviewItem) => void;
+  onTogglePendingReview?: (item: InlineReviewItem) => void;
 }) {
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -270,7 +278,11 @@ function InlineReviewCard({
           <span className="truncate font-semibold">{review.title}</span>
         </span>
         <span className="shrink-0 rounded-full border border-[#30363d] px-2 py-0.5 text-xs text-[#8b949e]">
-          {review.canPublish === false ? "需人工确认" : "可写入 Review"}
+          {review.canPublish === false
+            ? "需人工确认"
+            : selected
+              ? "已加入 Review"
+              : "可加入 Review"}
         </span>
       </button>
 
@@ -293,12 +305,18 @@ function InlineReviewCard({
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-md bg-[#238636] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:bg-[#21262d] disabled:text-[#57606a] focus-visible:ring-2 focus-visible:ring-cyan-400"
+              className={[
+                "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold focus-visible:ring-2 focus-visible:ring-cyan-400",
+                selected
+                  ? "border border-[#30363d] bg-[#21262d] text-[#c9d1d9] hover:bg-[#30363d]"
+                  : "bg-[#238636] text-white hover:bg-[#2ea043]",
+                "disabled:cursor-not-allowed disabled:bg-[#21262d] disabled:text-[#57606a]"
+              ].join(" ")}
               disabled={review.canPublish === false}
-              onClick={() => onPublishReview?.(review)}
+              onClick={() => onTogglePendingReview?.(review)}
             >
               <Send className="h-3.5 w-3.5" />
-              写入 GitHub Review
+              {selected ? "移出 Review" : "加入 Review"}
             </button>
           </span>
 

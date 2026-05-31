@@ -4,6 +4,23 @@ export type FetchGitHubPrDataParams = {
   pullNumber: number;
 };
 
+export type SubmitGitHubReviewParams = FetchGitHubPrDataParams & {
+  body: string;
+  event: "COMMENT";
+  comments: Array<{
+    path: string;
+    line: number;
+    side: "RIGHT";
+    body: string;
+  }>;
+};
+
+export type SubmittedGitHubReview = {
+  id: number;
+  htmlUrl: string;
+  state: string;
+};
+
 export type GitHubPullRequest = {
   url: string;
   number: number;

@@ -1,5 +1,8 @@
 import { describe, expect, test, vi } from "vitest";
-import { fetchGitHubPrData } from "@/lib/github/github-client";
+import {
+  fetchGitHubPrData,
+  submitGitHubReview
+} from "@/lib/github/github-client";
 
 function jsonResponse(body: unknown, init?: ResponseInit): Response {
   return new Response(JSON.stringify(body), {
@@ -174,5 +177,80 @@ describe("fetchGitHubPrData", () => {
         }
       )
     ).rejects.toThrow("GitHub API 请求失败：404");
+  });
+});
+
+describe("submitGitHubReview", () => {
+  test("一次性提交 GitHub Pull Request Review", async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      jsonResponse({
+        id: 1001,
+        html_url: "https://github.com/octocat/hello-world/pull/42#pullrequestreview-1001",
+        state: "COMMENTED"
+      })
+    );
+
+    const result = await submitGitHubReview(
+      {
+        owner: "octocat",
+        repo: "hello-world",
+        pullNumber: 42,
+        event: "COMMENT",
+        body: "LingQi Review",
+        comments: [
+          {
+            path: "src/auth/session.ts",
+            line: 42,
+            side: "RIGHT",
+            body: "刷新 token 前需要确认用户状态。"
+          }
+        ]
+      },
+      {
+        token: "github-token",
+        fetchImpl
+      }
+    );
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "https://api.github.com/repos/octocat/hello-world/pulls/42/reviews",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          authorization: "Bearer github-token"
+        }),
+        body: JSON.stringify({
+          event: "COMMENT",
+          body: "LingQi Review",
+          comments: [
+            {
+              path: "src/auth/session.ts",
+              line: 42,
+              side: "RIGHT",
+              body: "刷新 token 前需要确认用户状态。"
+            }
+          ]
+        })
+      })
+    );
+    expect(result).toEqual({
+      id: 1001,
+      htmlUrl:
+        "https://github.com/octocat/hello-world/pull/42#pullrequestreview-1001",
+      state: "COMMENTED"
+    });
+  });
+
+  test("缺少 token 时拒绝写入 Review", async () => {
+    await expect(
+      submitGitHubReview({
+        owner: "octocat",
+        repo: "hello-world",
+        pullNumber: 42,
+        event: "COMMENT",
+        body: "LingQi Review",
+        comments: []
+      })
+    ).rejects.toThrow("缺少 GITHUB_TOKEN，无法写入 GitHub Review");
   });
 });

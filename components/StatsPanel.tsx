@@ -45,10 +45,10 @@ function gradeInfo(score: number) {
 
 /* ---- Donut segments ---- */
 const severitySegments = [
-  { key: "blocker", label: "Blocker", color: "#dc2626" },
-  { key: "major", label: "Major", color: "#ea580c" },
-  { key: "minor", label: "Minor", color: "#2563eb" },
-  { key: "nit", label: "Nit", color: "#6b7280" },
+  { key: "blocker", label: "阻断", color: "#dc2626" },
+  { key: "major", label: "严重", color: "#ea580c" },
+  { key: "minor", label: "轻微", color: "#2563eb" },
+  { key: "nit", label: "建议", color: "#6b7280" },
 ];
 
 const categoryDefs = [

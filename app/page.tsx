@@ -12,6 +12,9 @@ import RiskCard from "@/components/RiskCard";
 import type { RiskFinding, Suggestion } from "@/components/RiskCard";
 import DiffViewer from "@/components/DiffViewer";
 import type { AnalyzePullRequestResult } from "@/lib/api/analyze-pr";
+import ReviewSummary from "@/components/ReviewSummary";
+import type { ReviewSummaryData, ReviewSummaryMeta } from "@/components/ReviewSummary";
+import { parsePrUrl } from "@/lib/github/parse-pr-url";
 import {
   GitPullRequest,
   Sparkles,
@@ -226,6 +229,10 @@ export default function HomePage() {
   const displaySuggestions =
     buildSuggestions(analysisResult) ?? demoSuggestions;
   const displayDiff = analysisResult?.context.diffText || demoDiff;
+  const displaySummary = buildSummaryData(analysisResult);
+  const displayMeta = buildSummaryMeta(analysisResult);
+  const displayGeneralSuggestions =
+    buildGeneralSuggestions(analysisResult) ?? [];
 
   const header = (
     <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur py-3 px-6">
@@ -401,6 +408,13 @@ export default function HomePage() {
 
           {activeTab === "stats" && (
             <div className="space-y-6">
+              {displaySummary && displayMeta && (
+                <ReviewSummary
+                  summary={displaySummary}
+                  generalSuggestions={displayGeneralSuggestions}
+                  meta={displayMeta}
+                />
+              )}
               <StatsPanel stats={displayStats} />
             </div>
           )}
@@ -416,7 +430,7 @@ export default function HomePage() {
               <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-6rem)] overflow-y-auto sticky top-[73px] flex flex-col gap-4">
                 <div className="space-y-3">
                   <h2 className="text-sm font-semibold text-slate-200">
-                    Risk Findings<span className="ml-1 font-normal text-slate-500">({displayRisks.length})</span>
+                    发现代码安全及架构隐患<span className="ml-1 font-normal text-slate-500">({displayRisks.length})</span>
                   </h2>
                   {displayRisks.map((risk, i) => (
                     <RiskCard
@@ -424,7 +438,6 @@ export default function HomePage() {
                       risk={risk}
                       suggestion={displaySuggestions[i]}
                       highlighted={selectedFile === risk.file}
-                      onExpandContext={i === 0 ? () => {} : undefined}
                     />
                   ))}
                 </div>
@@ -533,4 +546,40 @@ function buildSuggestions(
     },
     {}
   );
+}
+
+function buildSummaryData(result: AnalyzeResponse | null): ReviewSummaryData | null {
+  if (!result) return null;
+  return {
+    title: result.report.summary.title,
+    overview: result.report.summary.overview,
+    changedModules: result.report.summary.changedModules,
+    testSummary: result.report.summary.testSummary,
+  };
+}
+
+function buildSummaryMeta(result: AnalyzeResponse | null): ReviewSummaryMeta | null {
+  if (!result) return null;
+  const parsed = (() => {
+    try {
+      return parsePrUrl(result.context.prUrl);
+    } catch {
+      return null;
+    }
+  })();
+  return {
+    owner: parsed?.owner ?? "",
+    repo: parsed?.repo ?? "",
+    pullNumber: parsed?.pullNumber ?? 0,
+    filesCount: result.context.changedFiles,
+    totalAdditions: result.context.additions,
+    totalDeletions: result.context.deletions,
+    author: result.context.author,
+    avatarUrl: result.context.avatarUrl || undefined,
+  };
+}
+
+function buildGeneralSuggestions(result: AnalyzeResponse | null): string[] | null {
+  if (!result) return null;
+  return result.report.suggestions.map((s) => s.recommendation);
 }

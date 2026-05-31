@@ -53,15 +53,15 @@ export default function ReviewSummary({ summary, generalSuggestions, meta }: Rev
 
         <div className="flex items-center gap-6 border-t border-slate-800 pt-4 md:border-t-0 md:pt-0 font-mono text-xs text-slate-500">
           <div className="text-center">
-            <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-slate-500">Files</p>
+            <p className="font-sans text-[10px] font-semibold text-slate-500">文件</p>
             <p className="mt-1 text-sm font-semibold text-slate-200">{meta.filesCount}</p>
           </div>
           <div className="text-center">
-            <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-green-400">Added</p>
+            <p className="font-sans text-[10px] font-semibold text-green-400">新增</p>
             <p className="mt-1 text-sm font-bold text-green-400">+{meta.totalAdditions}</p>
           </div>
           <div className="text-center">
-            <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-red-400">Deleted</p>
+            <p className="font-sans text-[10px] font-semibold text-red-400">删除</p>
             <p className="mt-1 text-sm font-bold text-red-400">-{meta.totalDeletions}</p>
           </div>
         </div>

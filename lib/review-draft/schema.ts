@@ -17,3 +17,27 @@ export type ReviewDraft = {
   publishableCount: number;
   blockedCount: number;
 };
+
+export type ReviewSubmitPayloadComment = {
+  path: string;
+  line: number;
+  side: "RIGHT";
+  body: string;
+};
+
+export type ReviewSubmitPayload = {
+  event: "COMMENT";
+  body: string;
+  comments: ReviewSubmitPayloadComment[];
+};
+
+export type ReviewSubmitPlan = {
+  owner: string;
+  repo: string;
+  pullNumber: number;
+  payload: ReviewSubmitPayload;
+  publishableCount: number;
+  blockedCount: number;
+  blockedComments: ReviewDraftComment[];
+  dryRun: true;
+};

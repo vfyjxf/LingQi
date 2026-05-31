@@ -3,6 +3,15 @@ import { render, screen } from "@testing-library/react";
 import StatsPanel, { deriveAggregateScore } from "@/components/StatsPanel";
 import type { StatsData, DimensionScoreData } from "@/components/StatsPanel";
 
+// jsdom polyfill for Recharts ResponsiveContainer compatibility
+if (typeof window !== "undefined" && !window.ResizeObserver) {
+  window.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
 const mockDimensionScores: DimensionScoreData[] = [
   { dimension: "security", label: "安全漏洞", score: 85, severity: "minor", evidence: "No critical auth issues", color: "#2563eb", icon: () => null },
   { dimension: "data", label: "数据风险", score: 70, severity: "minor", evidence: "Minor data validation gaps", color: "#2563eb", icon: () => null },

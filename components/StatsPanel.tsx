@@ -186,78 +186,85 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
           )}
         </div>
 
-        <ResponsiveContainer width="100%" height={280}>
-          <RadarChart cx="50%" cy="45%" data={radarData}>
-            <PolarGrid stroke="#30363d" />
-            <PolarAngleAxis
-              dataKey="category"
-              tick={(props: any) => {
-                const { x, y, payload } = props;
-                const cat = categoryDefs.find((d) => d.label === payload.value);
-                const isActive = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
-                return (
-                  <text
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill={isActive ? "#58a6ff" : "#8b949e"}
-                    fontSize={12}
-                    fontWeight={isActive ? 700 : 400}
-                    cursor="pointer"
-                    onClick={() => {
-                      if (cat) {
-                        if (isActive) {
-                          onFilterChange?.("clear", null);
-                        } else {
-                          onFilterChange?.("category", cat.key);
+        {!hasRisks ? (
+          <div className="flex flex-1 flex-col items-center justify-center space-y-2 py-6 text-[#8b949e]">
+            <CheckCircle className="h-10 w-10 text-[#3fb950]" />
+            <p className="text-xs font-semibold">零高危隐患，代码状态极为优秀！</p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={280}>
+            <RadarChart cx="50%" cy="45%" data={radarData}>
+              <PolarGrid stroke="#30363d" />
+              <PolarAngleAxis
+                dataKey="category"
+                tick={(props: any) => {
+                  const { x, y, payload } = props;
+                  const cat = categoryDefs.find((d) => d.label === payload.value);
+                  const isActive = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill={isActive ? "#58a6ff" : "#8b949e"}
+                      fontSize={12}
+                      fontWeight={isActive ? 700 : 400}
+                      cursor="pointer"
+                      onClick={() => {
+                        if (cat) {
+                          if (isActive) {
+                            onFilterChange?.("clear", null);
+                          } else {
+                            onFilterChange?.("category", cat.key);
+                          }
                         }
-                      }
-                    }}
-                  >
-                    {payload.value}
-                  </text>
-                );
-              }}
-            />
-            <PolarRadiusAxis tick={false} axisLine={false} />
-            <Radar
-              dataKey="count"
-              stroke="#58a6ff"
-              fill="#58a6ff"
-              fillOpacity={0.15}
-              strokeWidth={2}
-              dot={({ cx, cy, index }: any) => {
-                if (cx == null || cy == null) return <></>;
-                const cat = categoryDefs[index];
-                const isActiveDot = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
-                return (
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={4}
-                    fill="#58a6ff"
-                    stroke="#0d1117"
-                    strokeWidth={1}
-                    cursor="pointer"
-                    onClick={(e: any) => {
-                      e.stopPropagation();
-                      if (cat) {
-                        if (isActiveDot) {
-                          onFilterChange?.("clear", null);
-                        } else {
-                          onFilterChange?.("category", cat.key);
+                      }}
+                    >
+                      {payload.value}
+                    </text>
+                  );
+                }}
+              />
+              <PolarRadiusAxis tick={false} axisLine={false} />
+              <Radar
+                dataKey="count"
+                stroke="#58a6ff"
+                fill="#58a6ff"
+                fillOpacity={0.15}
+                strokeWidth={2}
+                dot={({ cx, cy, index }: any) => {
+                  if (cx == null || cy == null) return <></>;
+                  const cat = categoryDefs[index];
+                  const isActiveDot = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
+                  return (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={4}
+                      fill="#58a6ff"
+                      stroke="#0d1117"
+                      strokeWidth={1}
+                      cursor="pointer"
+                      onClick={(e: any) => {
+                        e.stopPropagation();
+                        if (cat) {
+                          if (isActiveDot) {
+                            onFilterChange?.("clear", null);
+                          } else {
+                            onFilterChange?.("category", cat.key);
+                          }
                         }
-                      }
-                    }}
-                  />
-                );
-              }}
-              activeDot={{ r: 6, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 2 }}
-            />
-            <Tooltip formatter={(value) => [String(value) + " 项", ""]} />
-          </RadarChart>
-        </ResponsiveContainer>
+                      }}
+                    />
+                  );
+                }}
+                activeDot={{ r: 6, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 2 }}
+              />
+              <Tooltip formatter={(value) => [String(value) + " 项", ""]} />
+            </RadarChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

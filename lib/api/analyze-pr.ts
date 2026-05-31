@@ -1,6 +1,10 @@
 import { createAiProviderFromConfig } from "@/lib/ai/provider-factory";
 import type { AiProvider } from "@/lib/ai/provider";
-import { analyzePrContext } from "@/lib/analysis/analyzer";
+import {
+  runReviewers,
+  type ReviewerAnalysis,
+  type RunReviewersResult
+} from "@/lib/ai/reviewer-runner";
 import {
   buildContextAuditSummary,
   type ContextAuditSummary
@@ -24,6 +28,10 @@ import { buildReviewSubmitPlan } from "@/lib/review-draft/build-submit-payload";
 import type { ReviewDraft, ReviewSubmitPlan } from "@/lib/review-draft/schema";
 
 type EnvLike = Record<string, string | undefined>;
+type CreateAiProviderFn = (options: {
+  ai: AiModelConfig;
+  env: EnvLike;
+}) => AiProvider;
 
 type AnalyzePullRequestDependencies = {
   loadConfig: () => LingQiConfig;
@@ -39,25 +47,26 @@ type AnalyzePullRequestDependencies = {
       userPrompt?: string;
     }
   ) => PrAnalysisContext;
-  createAiProviderFromConfig: (options: {
-    ai: AiModelConfig;
+  createAiProviderFromConfig: CreateAiProviderFn;
+  runReviewers: (options: {
+    config: LingQiConfig;
+    context: PrAnalysisContext;
     env: EnvLike;
-  }) => AiProvider;
-  analyzePrContext: (
-    context: PrAnalysisContext,
-    provider: AiProvider
-  ) => Promise<AiReviewReport>;
+    createAiProviderFromConfig: CreateAiProviderFn;
+  }) => Promise<RunReviewersResult>;
 };
 
 export type AnalyzePullRequestOptions = {
   prUrl: unknown;
   userPrompt?: unknown;
+  reviewerIds?: unknown;
   env?: EnvLike;
   dependencies?: Partial<AnalyzePullRequestDependencies>;
 };
 
 export type AnalyzePullRequestResult = {
   report: AiReviewReport;
+  reviewerAnalyses: ReviewerAnalysis[];
   reviewDraft: ReviewDraft;
   reviewSubmitPlan: ReviewSubmitPlan;
   context: {
@@ -96,11 +105,13 @@ export class AnalyzePrConfigError extends Error {
 export async function analyzePullRequest({
   prUrl,
   userPrompt,
+  reviewerIds,
   env = process.env,
   dependencies = {}
 }: AnalyzePullRequestOptions): Promise<AnalyzePullRequestResult> {
   const prUrlText = validatePrUrlInput(prUrl);
   const userPromptText = validateUserPromptInput(userPrompt);
+  const reviewerIdList = validateReviewerIdsInput(reviewerIds);
   const parsedPr = parsePrUrlOrThrowInputError(prUrlText);
 
   const deps: AnalyzePullRequestDependencies = {
@@ -108,7 +119,7 @@ export async function analyzePullRequest({
     fetchGitHubPrData,
     buildPrAnalysisContext,
     createAiProviderFromConfig,
-    analyzePrContext,
+    runReviewers,
     ...dependencies
   };
 
@@ -127,11 +138,13 @@ export async function analyzePullRequest({
       contextConfig: config.context,
       ...(userPromptText ? { userPrompt: userPromptText } : {})
     });
-    const provider = deps.createAiProviderFromConfig({
-      ai: config.ai,
-      env
+    const { report, reviewerAnalyses } = await deps.runReviewers({
+      config,
+      context,
+      ...(reviewerIdList ? { reviewerIds: reviewerIdList } : {}),
+      env,
+      createAiProviderFromConfig: deps.createAiProviderFromConfig
     });
-    const report = await deps.analyzePrContext(context, provider);
     const reviewDraft = buildReviewDraft(report, context);
     const reviewSubmitPlan = buildReviewSubmitPlan({
       owner: parsedPr.owner,
@@ -142,6 +155,7 @@ export async function analyzePullRequest({
 
     return {
       report,
+      reviewerAnalyses,
       reviewDraft,
       reviewSubmitPlan,
       context: {
@@ -205,6 +219,31 @@ function validateUserPromptInput(userPrompt: unknown): string | undefined {
   }
 
   return trimmed;
+}
+
+function validateReviewerIdsInput(reviewerIds: unknown): string[] | undefined {
+  if (reviewerIds === undefined || reviewerIds === null) {
+    return undefined;
+  }
+
+  if (!Array.isArray(reviewerIds)) {
+    throw new AnalyzePrInputError("reviewerIds 必须是字符串数组");
+  }
+
+  const normalized = reviewerIds.map((reviewerId) => {
+    if (typeof reviewerId !== "string") {
+      throw new AnalyzePrInputError("reviewerIds 必须是字符串数组");
+    }
+
+    const trimmed = reviewerId.trim();
+    if (!trimmed) {
+      throw new AnalyzePrInputError("reviewerIds 不能包含空字符串");
+    }
+
+    return trimmed;
+  });
+
+  return [...new Set(normalized)];
 }
 
 function parsePrUrlOrThrowInputError(prUrl: string) {

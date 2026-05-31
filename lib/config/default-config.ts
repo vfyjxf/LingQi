@@ -10,6 +10,19 @@ export const defaultLingQiConfig: LingQiConfig = {
     timeoutMs: 60000,
     strictSchema: true
   },
+  reviewers: [
+    {
+      id: "fast-reviewer",
+      name: "快速上下文 reviewer",
+      role: "fast",
+      enabled: true,
+      provider: "deepseek",
+      model: "deepseek-v4-flash",
+      apiKeyEnv: "DEEPSEEK_API_KEY",
+      trigger: "always",
+      focus: ["summary", "risk", "suggestion"]
+    }
+  ],
   review: {
     language: "zh-CN",
     tone: "direct",

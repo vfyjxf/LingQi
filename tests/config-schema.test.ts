@@ -9,6 +9,11 @@ describe("LingQiConfigSchema", () => {
     expect(result.ai.provider).toBe("deepseek");
     expect(result.ai.model).toBe("deepseek-v4-flash");
     expect(result.ai.apiKeyEnv).toBe("DEEPSEEK_API_KEY");
+    expect(result.reviewers[0]).toMatchObject({
+      id: "fast-reviewer",
+      provider: "deepseek",
+      trigger: "always"
+    });
     expect(result.review.language).toBe("zh-CN");
   });
 
@@ -34,6 +39,48 @@ describe("LingQiConfigSchema", () => {
         ...defaultLingQiConfig.ai,
         provider: "openai"
       }
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test("非法 reviewer role 会被拒绝", () => {
+    const result = LingQiConfigSchema.safeParse({
+      ...defaultLingQiConfig,
+      reviewers: [
+        {
+          ...defaultLingQiConfig.reviewers[0],
+          role: "architect"
+        }
+      ]
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test("非法 reviewer trigger 会被拒绝", () => {
+    const result = LingQiConfigSchema.safeParse({
+      ...defaultLingQiConfig,
+      reviewers: [
+        {
+          ...defaultLingQiConfig.reviewers[0],
+          trigger: "on-demand"
+        }
+      ]
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test("非法 reviewer provider 会被拒绝", () => {
+    const result = LingQiConfigSchema.safeParse({
+      ...defaultLingQiConfig,
+      reviewers: [
+        {
+          ...defaultLingQiConfig.reviewers[0],
+          provider: "openai"
+        }
+      ]
     });
 
     expect(result.success).toBe(false);

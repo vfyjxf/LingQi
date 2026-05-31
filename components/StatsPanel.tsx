@@ -205,45 +205,35 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <RadarChart cx="50%" cy="50%" data={radarData} margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
-              <PolarGrid stroke="#30363d" gridType="polygon" />
+              <PolarGrid stroke="#30363d" />
               <PolarAngleAxis
                 dataKey="category"
                 tick={(props: any) => {
-                  const { x, y, payload, cx: centerX, cy: centerY } = props;
+                  const { x, y, payload } = props;
                   const cat = categoryDefs.find((d) => d.label === payload.value);
                   const isActive = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
-                  // push label outward along radial direction
-                  const dx = x - centerX;
-                  const dy = y - centerY;
-                  const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                  const offset = 24;
-                  const lx = x + (dx / dist) * offset;
-                  const ly = y + (dy / dist) * offset;
                   return (
-                    <g>
-                      <line x1={centerX} y1={centerY} x2={x} y2={y} stroke="#30363d" strokeWidth={1} />
-                      <text
-                        x={lx}
-                        y={ly}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fill={isActive ? "#58a6ff" : "#8b949e"}
-                        fontSize={12}
-                        fontWeight={isActive ? 700 : 400}
-                        cursor="pointer"
-                        onClick={() => {
-                          if (cat) {
-                            if (isActive) {
-                              onFilterChange?.("clear", null);
-                            } else {
-                              onFilterChange?.("category", cat.key);
-                            }
+                    <text
+                      x={x}
+                      y={y}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill={isActive ? "#58a6ff" : "#8b949e"}
+                      fontSize={12}
+                      fontWeight={isActive ? 700 : 400}
+                      cursor="pointer"
+                      onClick={() => {
+                        if (cat) {
+                          if (isActive) {
+                            onFilterChange?.("clear", null);
+                          } else {
+                            onFilterChange?.("category", cat.key);
                           }
-                        }}
-                      >
-                        {payload.value}
-                      </text>
-                    </g>
+                        }
+                      }}
+                    >
+                      {payload.value}
+                    </text>
                   );
                 }}
               />

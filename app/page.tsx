@@ -301,7 +301,9 @@ export default function HomePage() {
                       <button
                         key={item.key}
                         type="button"
+                        tabIndex={0}
                         onClick={() => setMode(item.key)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMode(item.key); } }}
                         className={`flex h-24 w-full select-none flex-col justify-between rounded-md border p-3.5 text-left transition-all ${
                           isSelected
                             ? `${item.color} border-2 font-semibold ring-1 ring-current ring-inset`
@@ -345,9 +347,11 @@ export default function HomePage() {
             </div>
           </div>
 
+          {process.env.NODE_ENV === "development" && (
           <div className="text-center">
             <button className="text-xs text-[#8b949e] underline transition-colors hover:text-[#f85149]" onClick={handleDemoError}>模拟错误状态</button>
           </div>
+          )}
         </div>
       </main>
     );

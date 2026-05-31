@@ -64,6 +64,7 @@ export default function RiskCard({
         type="button"
         className="flex w-full items-start gap-4 p-5 text-left cursor-pointer select-none"
         onClick={() => setExpanded(!expanded)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(!expanded); } }}
         aria-expanded={expanded}
         aria-label={risk.title}
       >

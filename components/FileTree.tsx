@@ -76,8 +76,10 @@ export default function FileTree({
             <li
               key={file.filename}
               role="option"
+              tabIndex={0}
               className="flex cursor-pointer items-center gap-3 border-b border-[#30363d] px-4 py-2.5 text-xs transition hover:bg-[#1c2128] last:border-none"
               onClick={() => onFileSelect?.(file.filename)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onFileSelect?.(file.filename); } }}
             >
               {/* File status indicator */}
               <span

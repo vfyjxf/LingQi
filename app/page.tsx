@@ -472,6 +472,8 @@ export default function HomePage() {
                   </div>
                 )}
 
+                <ReviewerPanel reviewers={analysisResult?.reviewerAnalyses ?? []} />
+
                 {/* ④ KPI 数字 2x2 */}
                 {displayMeta && (
                   <div className="grid grid-cols-2 gap-3">
@@ -619,8 +621,66 @@ export default function HomePage() {
   );
 }
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+type ReviewerPanelProps = {
+  reviewers: AnalyzeResponse["reviewerAnalyses"];
+};
+
+function ReviewerPanel({ reviewers }: ReviewerPanelProps) {
+  if (reviewers.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs font-semibold text-[#58a6ff]">
+          <Sparkles className="h-3.5 w-3.5" />
+          多模型 reviewer
+        </div>
+        <span className="rounded-full border border-[#30363d] bg-[#21262d] px-2 py-0.5 font-mono text-xs text-[#8b949e]">
+          {reviewers.length}
+        </span>
+      </div>
+      <div className="space-y-2">
+        {reviewers.map((reviewer) => (
+          <div
+            key={reviewer.reviewerId}
+            className="rounded-md border border-[#30363d] bg-[#21262d] p-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="truncate text-xs font-semibold text-[#c9d1d9]">
+                  {reviewer.reviewerName}
+                </div>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  <ReviewerTag>{reviewer.role}</ReviewerTag>
+                  <ReviewerTag>{reviewer.trigger}</ReviewerTag>
+                  <ReviewerTag>{reviewer.model}</ReviewerTag>
+                </div>
+              </div>
+              <div className="shrink-0 text-right font-mono text-xs text-[#8b949e]">
+                <div className="text-[#f85149]">{reviewer.riskCount} risk</div>
+                <div className="mt-0.5 text-[#d29922]">
+                  {reviewer.suggestionCount} sug
+                </div>
+              </div>
+            </div>
+            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[#8b949e]">
+              {reviewer.summary}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ReviewerTag({ children }: { children: string }) {
+  return (
+    <span className="rounded border border-[#30363d] bg-[#0d1117] px-1.5 py-0.5 font-mono text-[11px] text-[#8b949e]">
+      {children}
+    </span>
+  );
 }
 
 function extractFileDiff(diffText: string, filename: string | null): string {

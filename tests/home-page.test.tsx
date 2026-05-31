@@ -58,6 +58,19 @@ describe("HomePage", () => {
                 modelStrategy: "DeepSeek 结构化输出"
               }
             },
+            reviewerAnalyses: [
+              {
+                reviewerId: "fast-reviewer",
+                reviewerName: "快速上下文 reviewer",
+                role: "fast",
+                model: "deepseek-v4-flash",
+                trigger: "always",
+                summary: "本次 PR 更新 session refresh 逻辑。",
+                riskCount: 1,
+                suggestionCount: 1,
+                limitations: []
+              }
+            ],
             reviewDraft: {
               publishableCount: 1,
               blockedCount: 0,
@@ -143,6 +156,9 @@ describe("HomePage", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /核心隐患审计/ })).toBeEnabled();
     });
+    expect(screen.getByText("多模型 reviewer")).toBeInTheDocument();
+    expect(screen.getByText("快速上下文 reviewer")).toBeInTheDocument();
+    expect(screen.getByText("deepseek-v4-flash")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /核心隐患审计/ }));
 
     expect(screen.queryByText("暂无 diff 数据")).not.toBeInTheDocument();

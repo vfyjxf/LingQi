@@ -11,6 +11,10 @@ import type { FileEntry } from "@/components/FileTree";
 import RiskCard from "@/components/RiskCard";
 import type { RiskFinding, Suggestion } from "@/components/RiskCard";
 import DiffViewer from "@/components/DiffViewer";
+import {
+  mapDraftCommentToInlineReview,
+  type InlineReviewItem
+} from "@/components/DiffViewer";
 import type { AnalyzePullRequestResult } from "@/lib/api/analyze-pr";
 import type { ReviewSummaryData, ReviewSummaryMeta } from "@/components/ReviewSummary";
 import { parsePrUrl } from "@/lib/github/parse-pr-url";
@@ -170,6 +174,11 @@ export default function HomePage() {
   );
   const [activeFilter, setActiveFilter] = useState<FilterState>({ type: null, value: null });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedReviewTarget, setSelectedReviewTarget] = useState<{
+    path: string;
+    line?: number;
+  } | null>(null);
+  const [reviewActionMessage, setReviewActionMessage] = useState<string | null>(null);
 
   function handleFilterChange(type: "category" | "severity" | "clear", value: string | null) {
     if (type === "clear") {
@@ -226,6 +235,8 @@ export default function HomePage() {
     setAnalysisResult(null);
     setActiveFilter({ type: null, value: null });
     setErrorMessage(null);
+    setSelectedReviewTarget(null);
+    setReviewActionMessage(null);
   }
 
   const displayStats = buildStatsData(analysisResult) ?? demoStats;
@@ -245,6 +256,22 @@ export default function HomePage() {
   const displayMeta = buildSummaryMeta(analysisResult);
   const displayGeneralSuggestions =
     buildGeneralSuggestions(analysisResult) ?? [];
+  const inlineReviews = buildInlineReviews(analysisResult, displayRisks);
+
+  function handleLocateRisk(risk: RiskFinding) {
+    setSelectedFile(risk.file);
+    setSelectedReviewTarget({ path: risk.file, line: risk.line });
+  }
+
+  function handleAddComment(item: InlineReviewItem) {
+    setReviewActionMessage(`已在 ${item.path}${item.line ? `:${item.line}` : ""} 打开补充 comment 草稿。`);
+  }
+
+  function handlePublishReview(item: InlineReviewItem) {
+    setReviewActionMessage(
+      `dry-run：将写入 ${item.path}${item.line ? `:${item.line}` : ""} 的 GitHub Review 评论已准备好。`
+    );
+  }
 
   const header = (
     <header className="sticky top-0 z-40 border-b border-[#30363d] bg-[#161b22]/80 backdrop-blur py-3 px-6">
@@ -517,12 +544,24 @@ export default function HomePage() {
                   />
                 </div>
                 <div className="flex-1 min-h-0">
-                  <DiffViewer diffText={displayDiff} maxHeight="none" />
+                  <DiffViewer
+                    diffText={displayDiff}
+                    selectedTarget={selectedReviewTarget}
+                    inlineReviews={inlineReviews}
+                    onAddComment={handleAddComment}
+                    onPublishReview={handlePublishReview}
+                    maxHeight="none"
+                  />
                 </div>
               </aside>
 
               {/* Right column: Risk cards (50%) */}
               <aside className="flex-1 sticky top-[var(--header-height)] max-h-[calc(100vh-6rem)] overflow-y-auto flex flex-col gap-4">
+                {reviewActionMessage && (
+                  <div className="rounded-md border border-[#30363d] bg-[#161b22] px-3 py-2 text-xs text-[#c9d1d9]">
+                    {reviewActionMessage}
+                  </div>
+                )}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-sm font-semibold text-[#c9d1d9]">
@@ -551,6 +590,7 @@ export default function HomePage() {
                         risk={risk}
                         suggestion={displaySuggestions[i]}
                         highlighted={selectedFile === risk.file}
+                        onLocate={handleLocateRisk}
                       />
                     ))
                   ) : (
@@ -748,4 +788,32 @@ function buildSummaryMeta(result: AnalyzeResponse | null): ReviewSummaryMeta | n
 function buildGeneralSuggestions(result: AnalyzeResponse | null): string[] | null {
   if (!result) return null;
   return result.report.suggestions.map((s) => s.recommendation);
+}
+
+function buildInlineReviews(
+  result: AnalyzeResponse | null,
+  risks: RiskFinding[]
+): InlineReviewItem[] {
+  if (result?.reviewDraft.comments.length) {
+    return result.reviewDraft.comments.map(mapDraftCommentToInlineReview);
+  }
+
+  return risks
+    .filter((risk) => risk.line)
+    .map((risk, index) => ({
+      id: `demo-risk-${index}-${risk.file}-${risk.line}`,
+      path: risk.file,
+      line: risk.line,
+      title: risk.title,
+      body: [
+        `**风险：${risk.title}**`,
+        "",
+        `证据：${risk.evidence}`,
+        "",
+        `影响：${risk.impact}`
+      ].join("\n"),
+      severity: risk.severity,
+      canPublish: true,
+      source: "risk"
+    }));
 }

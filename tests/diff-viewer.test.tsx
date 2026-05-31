@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
+import { vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import DiffViewer from "@/components/DiffViewer";
 
 const mockDiff = [
@@ -50,9 +52,56 @@ describe("DiffViewer", () => {
   });
 
   test("显示行号", () => {
-    render(<DiffViewer diffText={"line1\nline2\nline3"} />);
+    render(
+      <DiffViewer
+        diffText={[
+          "diff --git a/src/plain.ts b/src/plain.ts",
+          "--- a/src/plain.ts",
+          "+++ b/src/plain.ts",
+          "@@ -1,3 +1,3 @@",
+          " line1",
+          " line2",
+          " line3"
+        ].join("\n")}
+      />
+    );
+
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
+  });
+
+  test("在匹配代码行下展示 inline review 卡片并触发操作", async () => {
+    const user = userEvent.setup();
+    const onAddComment = vi.fn();
+    const onPublishReview = vi.fn();
+
+    render(
+      <DiffViewer
+        diffText={mockDiff}
+        inlineReviews={[
+          {
+            id: "review-1",
+            path: "src/auth.ts",
+            line: 10,
+            title: "AI 风险评论",
+            body: "需要确认 token 存在后再写入 session。",
+            canPublish: true,
+            source: "risk"
+          }
+        ]}
+        onAddComment={onAddComment}
+        onPublishReview={onPublishReview}
+      />
+    );
+
+    expect(screen.getByText("AI 风险评论")).toBeInTheDocument();
+    expect(screen.getByText("需要确认 token 存在后再写入 session。")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /补充 comment/ }));
+    await user.click(screen.getByRole("button", { name: /写入 GitHub Review/ }));
+
+    expect(onAddComment).toHaveBeenCalledTimes(1);
+    expect(onPublishReview).toHaveBeenCalledTimes(1);
   });
 });

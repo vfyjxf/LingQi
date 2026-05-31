@@ -24,6 +24,7 @@ type RiskCardProps = {
   risk: RiskFinding;
   suggestion?: Suggestion;
   highlighted?: boolean;
+  onLocate?: (risk: RiskFinding) => void;
 };
 
 const severityConfig: Record<Severity, { label: string; icon: typeof Shield; iconBg: string; badge: string }> = {
@@ -47,6 +48,7 @@ export default function RiskCard({
   risk,
   suggestion,
   highlighted,
+  onLocate,
 }: RiskCardProps) {
   const [expanded, setExpanded] = useState(true);
   const sev = severityConfig[risk.severity];
@@ -113,6 +115,16 @@ export default function RiskCard({
               <p className="line-clamp-3 text-xs leading-relaxed text-[#8b949e]" title={suggestion.rationale}>{suggestion.rationale}</p>
             </div>
           )}
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-xs font-semibold text-[#c9d1d9] transition hover:bg-[#21262d] focus-visible:ring-2 focus-visible:ring-cyan-400"
+              onClick={() => onLocate?.(risk)}
+            >
+              定位到代码
+            </button>
+          </div>
 
         </div>
       )}

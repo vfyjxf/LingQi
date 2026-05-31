@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     const result = await analyzePullRequest({
       prUrl: body?.prUrl,
       userPrompt: body?.userPrompt,
+      reviewerIds: body?.reviewerIds,
       env: process.env
     });
 

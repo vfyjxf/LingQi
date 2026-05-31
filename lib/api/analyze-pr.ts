@@ -59,6 +59,7 @@ type AnalyzePullRequestDependencies = {
 export type AnalyzePullRequestOptions = {
   prUrl: unknown;
   userPrompt?: unknown;
+  reviewerIds?: unknown;
   env?: EnvLike;
   dependencies?: Partial<AnalyzePullRequestDependencies>;
 };
@@ -104,11 +105,13 @@ export class AnalyzePrConfigError extends Error {
 export async function analyzePullRequest({
   prUrl,
   userPrompt,
+  reviewerIds,
   env = process.env,
   dependencies = {}
 }: AnalyzePullRequestOptions): Promise<AnalyzePullRequestResult> {
   const prUrlText = validatePrUrlInput(prUrl);
   const userPromptText = validateUserPromptInput(userPrompt);
+  const reviewerIdList = validateReviewerIdsInput(reviewerIds);
   const parsedPr = parsePrUrlOrThrowInputError(prUrlText);
 
   const deps: AnalyzePullRequestDependencies = {
@@ -138,6 +141,7 @@ export async function analyzePullRequest({
     const { report, reviewerAnalyses } = await deps.runReviewers({
       config,
       context,
+      ...(reviewerIdList ? { reviewerIds: reviewerIdList } : {}),
       env,
       createAiProviderFromConfig: deps.createAiProviderFromConfig
     });
@@ -215,6 +219,31 @@ function validateUserPromptInput(userPrompt: unknown): string | undefined {
   }
 
   return trimmed;
+}
+
+function validateReviewerIdsInput(reviewerIds: unknown): string[] | undefined {
+  if (reviewerIds === undefined || reviewerIds === null) {
+    return undefined;
+  }
+
+  if (!Array.isArray(reviewerIds)) {
+    throw new AnalyzePrInputError("reviewerIds 必须是字符串数组");
+  }
+
+  const normalized = reviewerIds.map((reviewerId) => {
+    if (typeof reviewerId !== "string") {
+      throw new AnalyzePrInputError("reviewerIds 必须是字符串数组");
+    }
+
+    const trimmed = reviewerId.trim();
+    if (!trimmed) {
+      throw new AnalyzePrInputError("reviewerIds 不能包含空字符串");
+    }
+
+    return trimmed;
+  });
+
+  return [...new Set(normalized)];
 }
 
 function parsePrUrlOrThrowInputError(prUrl: string) {

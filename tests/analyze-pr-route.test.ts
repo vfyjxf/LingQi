@@ -158,7 +158,8 @@ describe("POST /api/analyze-pr", () => {
     const response = await POST(
       jsonRequest({
         prUrl: "https://github.com/octocat/hello-world/pull/42",
-        userPrompt: "重点检查缓存一致性"
+        userPrompt: "重点检查缓存一致性",
+        reviewerIds: ["fast-reviewer", "expert-reviewer"]
       })
     );
 
@@ -166,6 +167,7 @@ describe("POST /api/analyze-pr", () => {
     expect(analyzePullRequestMock).toHaveBeenCalledWith({
       prUrl: "https://github.com/octocat/hello-world/pull/42",
       userPrompt: "重点检查缓存一致性",
+      reviewerIds: ["fast-reviewer", "expert-reviewer"],
       env: process.env
     });
     await expect(response.json()).resolves.toEqual(result);

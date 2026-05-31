@@ -353,6 +353,54 @@ describe("analyzePullRequest", () => {
     );
   });
 
+  test("reviewerIds 会去重后传入 reviewer 编排", async () => {
+    const dependencies = {
+      loadConfig: vi.fn().mockReturnValue(defaultLingQiConfig),
+      fetchGitHubPrData: vi.fn().mockResolvedValue(githubData),
+      buildPrAnalysisContext: vi.fn().mockReturnValue(context),
+      createAiProviderFromConfig: vi.fn(),
+      runReviewers: vi.fn().mockResolvedValue({
+        report,
+        reviewerAnalyses: []
+      })
+    };
+
+    await analyzePullRequest({
+      prUrl: "https://github.com/octocat/hello-world/pull/42",
+      reviewerIds: ["fast-reviewer", "fast-reviewer", " expert-reviewer "],
+      env: {
+        DEEPSEEK_API_KEY: "deepseek-key"
+      },
+      dependencies
+    });
+
+    expect(dependencies.runReviewers).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reviewerIds: ["fast-reviewer", "expert-reviewer"]
+      })
+    );
+  });
+
+  test("reviewerIds 不是字符串数组时抛出输入错误", async () => {
+    await expect(
+      analyzePullRequest({
+        prUrl: "https://github.com/octocat/hello-world/pull/42",
+        reviewerIds: "fast-reviewer",
+        env: {}
+      })
+    ).rejects.toThrow("reviewerIds 必须是字符串数组");
+  });
+
+  test("reviewerIds 包含空字符串时抛出输入错误", async () => {
+    await expect(
+      analyzePullRequest({
+        prUrl: "https://github.com/octocat/hello-world/pull/42",
+        reviewerIds: ["fast-reviewer", " "],
+        env: {}
+      })
+    ).rejects.toThrow("reviewerIds 不能包含空字符串");
+  });
+
   test("用户补充审查要求不是字符串时抛出输入错误", async () => {
     await expect(
       analyzePullRequest({

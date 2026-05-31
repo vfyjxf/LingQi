@@ -27,6 +27,7 @@ export type ReviewerAnalysis = {
 export type RunReviewersOptions = {
   config: LingQiConfig;
   context: PrAnalysisContext;
+  reviewerIds?: string[];
   env?: EnvLike;
   createAiProviderFromConfig: (options: {
     ai: AiModelConfig;
@@ -52,16 +53,18 @@ const HIGH_RISK_SEVERITIES = new Set(["blocker", "major"]);
 export async function runReviewers({
   config,
   context,
+  reviewerIds,
   env = process.env,
   createAiProviderFromConfig,
   analyzePrContext: analyze = analyzePrContext
 }: RunReviewersOptions): Promise<RunReviewersResult> {
-  const reviewers = resolveRunnableReviewers(config);
+  const reviewers = resolveRunnableReviewers(config, reviewerIds);
+  const isManualSelection = Boolean(reviewerIds?.length);
   const reviewerAnalyses: ReviewerAnalysis[] = [];
   let mergedReport: AiReviewReport | undefined;
 
   for (const reviewer of reviewers) {
-    if (!shouldRunReviewer(reviewer, mergedReport)) {
+    if (!shouldRunReviewer(reviewer, mergedReport, isManualSelection)) {
       continue;
     }
 
@@ -89,24 +92,52 @@ export async function runReviewers({
   };
 }
 
-function resolveRunnableReviewers(config: LingQiConfig): RunnableReviewer[] {
-  const configuredReviewers = config.reviewers
+function resolveRunnableReviewers(
+  config: LingQiConfig,
+  reviewerIds?: string[]
+): RunnableReviewer[] {
+  const allReviewers = config.reviewers.map((reviewer) => ({
+    ...reviewer,
+    ai: {
+      provider: reviewer.provider,
+      model: reviewer.model,
+      apiKeyEnv: reviewer.apiKeyEnv,
+      temperature: config.ai.temperature,
+      maxOutputTokens: config.ai.maxOutputTokens,
+      timeoutMs: config.ai.timeoutMs,
+      strictSchema: config.ai.strictSchema
+    }
+  }));
+
+  if (reviewerIds?.length) {
+    const selectedIds = new Set(reviewerIds);
+    const unknownIds = reviewerIds.filter(
+      (id) => !allReviewers.some((reviewer) => reviewer.id === id)
+    );
+    if (unknownIds.length > 0) {
+      throw new Error(`未知 AI reviewer：${unknownIds.join(", ")}`);
+    }
+
+    const disabledIds = allReviewers
+      .filter((reviewer) => selectedIds.has(reviewer.id) && !reviewer.enabled)
+      .map((reviewer) => reviewer.id);
+    if (disabledIds.length > 0) {
+      throw new Error(`AI reviewer 未启用：${disabledIds.join(", ")}`);
+    }
+
+    return allReviewers.filter((reviewer) => selectedIds.has(reviewer.id));
+  }
+
+  const configuredReviewers = allReviewers
     .filter((reviewer) => reviewer.enabled)
-    .map((reviewer) => ({
-      ...reviewer,
-      ai: {
-        provider: reviewer.provider,
-        model: reviewer.model,
-        apiKeyEnv: reviewer.apiKeyEnv,
-        temperature: config.ai.temperature,
-        maxOutputTokens: config.ai.maxOutputTokens,
-        timeoutMs: config.ai.timeoutMs,
-        strictSchema: config.ai.strictSchema
-      }
-    }));
+    .filter((reviewer) => reviewer.trigger !== "manual");
 
   if (configuredReviewers.length > 0) {
     return configuredReviewers;
+  }
+
+  if (config.reviewers.length > 0) {
+    return [];
   }
 
   return [
@@ -127,8 +158,13 @@ function resolveRunnableReviewers(config: LingQiConfig): RunnableReviewer[] {
 
 function shouldRunReviewer(
   reviewer: RunnableReviewer,
-  currentReport: AiReviewReport | undefined
+  currentReport: AiReviewReport | undefined,
+  isManualSelection: boolean
 ) {
+  if (isManualSelection) {
+    return true;
+  }
+
   if (reviewer.trigger === "manual") {
     return false;
   }

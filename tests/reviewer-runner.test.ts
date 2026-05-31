@@ -256,6 +256,77 @@ describe("runReviewers", () => {
     expect(result.reviewerAnalyses).toHaveLength(1);
   });
 
+  test("传入 reviewerIds 时只执行选中的 reviewer，并允许 manual reviewer", async () => {
+    const config: LingQiConfig = {
+      ...defaultLingQiConfig,
+      reviewers: [
+        defaultLingQiConfig.reviewers[0],
+        {
+          ...defaultLingQiConfig.reviewers[0],
+          id: "manual-reviewer",
+          name: "手动专家 reviewer",
+          role: "expert",
+          model: "deepseek-reasoner",
+          trigger: "manual"
+        }
+      ]
+    };
+    const createAiProviderFromConfig = vi
+      .fn()
+      .mockReturnValue(createProvider());
+    const analyzePrContext = vi.fn().mockResolvedValue(createReport());
+
+    const result = await runReviewers({
+      config,
+      context,
+      reviewerIds: ["manual-reviewer"],
+      createAiProviderFromConfig,
+      analyzePrContext
+    });
+
+    expect(analyzePrContext).toHaveBeenCalledTimes(1);
+    expect(result.reviewerAnalyses).toHaveLength(1);
+    expect(result.reviewerAnalyses[0]).toMatchObject({
+      reviewerId: "manual-reviewer",
+      trigger: "manual",
+      model: "deepseek-reasoner"
+    });
+  });
+
+  test("传入未知 reviewerIds 时给出清晰错误", async () => {
+    await expect(
+      runReviewers({
+        config: defaultLingQiConfig,
+        context,
+        reviewerIds: ["not-exists"],
+        createAiProviderFromConfig: vi.fn().mockReturnValue(createProvider()),
+        analyzePrContext: vi.fn().mockResolvedValue(createReport())
+      })
+    ).rejects.toThrow("未知 AI reviewer：not-exists");
+  });
+
+  test("传入未启用 reviewerIds 时给出清晰错误", async () => {
+    const config: LingQiConfig = {
+      ...defaultLingQiConfig,
+      reviewers: [
+        {
+          ...defaultLingQiConfig.reviewers[0],
+          enabled: false
+        }
+      ]
+    };
+
+    await expect(
+      runReviewers({
+        config,
+        context,
+        reviewerIds: ["fast-reviewer"],
+        createAiProviderFromConfig: vi.fn().mockReturnValue(createProvider()),
+        analyzePrContext: vi.fn().mockResolvedValue(createReport())
+      })
+    ).rejects.toThrow("AI reviewer 未启用：fast-reviewer");
+  });
+
   test("合并多个 reviewer 报告时去重风险和建议", async () => {
     const duplicatedRisk = createRisk("major");
     const duplicatedSuggestion = {

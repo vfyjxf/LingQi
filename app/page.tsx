@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import PrInput from "@/components/PrInput";
 import ReviewProgress from "@/components/ReviewProgress";
 import type { ReviewStatus, ReviewStats, ReviewError } from "@/components/ReviewProgress";
-import StatsPanel from "@/components/StatsPanel";
+import { GradeBadge, StatsCharts } from "@/components/StatsPanel";
 import type { StatsData, FilterState } from "@/components/StatsPanel";
 import FileTree from "@/components/FileTree";
 import type { FileEntry } from "@/components/FileTree";
@@ -12,7 +12,6 @@ import RiskCard from "@/components/RiskCard";
 import type { RiskFinding, Suggestion } from "@/components/RiskCard";
 import DiffViewer from "@/components/DiffViewer";
 import type { AnalyzePullRequestResult } from "@/lib/api/analyze-pr";
-import ReviewSummary from "@/components/ReviewSummary";
 import type { ReviewSummaryData, ReviewSummaryMeta } from "@/components/ReviewSummary";
 import { parsePrUrl } from "@/lib/github/parse-pr-url";
 import {
@@ -25,6 +24,9 @@ import {
   RefreshCw,
   BarChart3,
   ShieldAlert,
+  User,
+  FileText,
+  FolderOpen,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -393,15 +395,110 @@ export default function HomePage() {
           </div>
 
           {activeTab === "stats" && (
-            <div className="space-y-6">
-              {displaySummary && displayMeta && (
-                <ReviewSummary
-                  summary={displaySummary}
-                  generalSuggestions={displayGeneralSuggestions}
-                  meta={displayMeta}
-                />
-              )}
-              <StatsPanel stats={displayStats} activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+            <div className="flex gap-6">
+              {/* ===== 左栏 40% ===== */}
+              <div className="flex-[4] flex flex-col gap-4">
+                {/* ① 评级 Hero */}
+                <GradeBadge stats={displayStats} />
+
+                {/* ② PR 信息 + 测试摘要 */}
+                {displayMeta && (
+                  <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-4">
+                    <div className="flex items-center gap-3">
+                      {displayMeta.avatarUrl ? (
+                        <img src={displayMeta.avatarUrl} alt={displayMeta.author} className="h-8 w-8 rounded-full border border-[#30363d]" referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#30363d] bg-[#21262d]">
+                          <User className="h-4 w-4 text-[#8b949e]" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-sm font-semibold text-[#c9d1d9]">{displayMeta.owner}/{displayMeta.repo} <span className="text-[#8b949e]">#{displayMeta.pullNumber}</span></div>
+                        <div className="text-xs text-[#8b949e]">@{displayMeta.author}</div>
+                      </div>
+                    </div>
+                    {displaySummary?.testSummary && (
+                      <div className="mt-3 border-t border-[#30363d] pt-3">
+                        <div className="text-xs font-semibold text-[#8957e5]">测试摘要</div>
+                        <div className="mt-1 text-xs leading-relaxed text-[#8b949e]">{displaySummary.testSummary}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ③ 变更模块 */}
+                {displaySummary && displaySummary.changedModules.length > 0 && (
+                  <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-4">
+                    <div className="mb-2 text-xs font-semibold text-[#58a6ff]">变更模块</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {displaySummary.changedModules.map((mod, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 rounded border border-[#30363d] bg-[#21262d] px-2 py-1 font-mono text-xs text-[#c9d1d9]">
+                          <FileText className="h-3 w-3 text-[#58a6ff]" />{mod}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ④ KPI 数字 2x2 */}
+                {displayMeta && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-3 text-center">
+                      <div className="text-xs text-[#8b949e]">变更文件</div>
+                      <div className="mt-1 text-xl font-black text-[#c9d1d9]">{displayMeta.filesCount}</div>
+                    </div>
+                    <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-3 text-center">
+                      <div className="text-xs text-[#8b949e]">风险项</div>
+                      <div className="mt-1 text-xl font-black text-[#f85149]">{displayStats.riskCount}</div>
+                    </div>
+                    <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-3 text-center">
+                      <div className="text-xs text-[#8b949e]">新增行</div>
+                      <div className="mt-1 text-xl font-black text-[#3fb950]">+{displayMeta.totalAdditions}</div>
+                    </div>
+                    <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-3 text-center">
+                      <div className="text-xs text-[#8b949e]">删除行</div>
+                      <div className="mt-1 text-xl font-black text-[#f85149]">-{displayMeta.totalDeletions}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ===== 右栏 60% ===== */}
+              <div className="flex-[6] flex flex-col gap-4">
+                {/* 图表行：玫瑰图 + 雷达图 */}
+                <StatsCharts stats={displayStats} activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+
+                {/* PR 变更总结 (flex:1 撑满) */}
+                {displaySummary && (
+                  <div className="flex-1 rounded-lg border border-[#30363d] bg-[#161b22] p-5">
+                    <h3 className="flex items-center gap-2 border-b border-[#30363d] pb-3 text-sm font-semibold text-[#c9d1d9]">
+                      <Sparkles className="h-4 w-4 text-[#58a6ff]" /> PR 变更总结与主要目标
+                    </h3>
+                    <p className="mt-4 text-sm leading-relaxed whitespace-pre-wrap text-[#c9d1d9]">
+                      {displaySummary.overview || "无 PR 变更描述。"}
+                    </p>
+                  </div>
+                )}
+
+                {/* 架构与质量改进建议 */}
+                {displayGeneralSuggestions && displayGeneralSuggestions.length > 0 && (
+                  <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-4">
+                    <h3 className="flex items-center gap-2 border-b border-[#30363d] pb-3 text-sm font-semibold text-[#c9d1d9]">
+                      <FolderOpen className="h-4 w-4 text-[#3fb950]" /> 架构与质量改进建议
+                    </h3>
+                    <div className="mt-3 grid grid-cols-2 gap-3">
+                      {displayGeneralSuggestions.map((suggestion, idx) => (
+                        <div key={idx} className="flex items-start gap-2 rounded-md border border-[#30363d] bg-[#21262d] p-3">
+                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#58a6ff]/10 text-xs font-semibold text-[#58a6ff]">
+                            {idx + 1}
+                          </div>
+                          <p className="text-xs leading-relaxed text-[#c9d1d9]">{suggestion}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

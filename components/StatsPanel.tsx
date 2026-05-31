@@ -1,7 +1,7 @@
 "use client";
 
 import { Award, AlertTriangle, ShieldCheck, Zap, Code2, CheckCircle } from "lucide-react";
-import { RadialBarChart, RadialBar, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { RadialBarChart, RadialBar, Cell, ResponsiveContainer, Tooltip, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Dot } from "recharts";
 
 export type StatsData = {
   filesChanged: number;
@@ -79,9 +79,16 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
     key: seg.key,
   }));
 
-  /* ---- Category bars ---- */
+  /* ---- Category bars / RadarChart data ---- */
   const catCounts = stats.categoryCounts ?? {};
   const maxCat = Math.max(1, ...Object.values(catCounts));
+
+  const radarData = categoryDefs.map((cat) => ({
+    category: cat.label,
+    count: catCounts[cat.key] ?? 0,
+    fullMark: maxCat,
+    key: cat.key,
+  }));
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -179,35 +186,78 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
           )}
         </div>
 
-        <div className="flex flex-1 flex-col justify-center space-y-2.5">
-          {categoryDefs.map((cat) => {
-            const count = catCounts[cat.key] ?? 0;
-            const pct = (count / maxCat) * 100;
-            const isActive = activeFilter?.type === "category" && activeFilter?.value === cat.key;
-            return (
-              <div
-                key={cat.key}
-                onClick={() => onFilterChange?.("category", cat.key)}
-                role="button"
-                aria-label={`按${cat.label}类别筛选`}
-                className={`cursor-pointer rounded px-2 py-1 border border-transparent transition ${
-                  isActive ? "border-[#58a6ff]/50 bg-[#21262d]" : "hover:bg-[#21262d]"
-                }`}
-              >
-                <div className="mb-1 flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1 font-semibold text-[#c9d1d9]">
-                    <cat.icon className={`h-3.5 w-3.5 ${cat.textColor}`} />
-                    {cat.label}
-                  </span>
-                  <span className="font-mono font-semibold text-[#8b949e]">{count} 项</span>
-                </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#21262d]">
-                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: cat.color }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ResponsiveContainer width="100%" height={280}>
+          <RadarChart cx="50%" cy="45%" data={radarData}>
+            <PolarGrid stroke="#30363d" />
+            <PolarAngleAxis
+              dataKey="category"
+              tick={(props: any) => {
+                const { x, y, payload } = props;
+                const cat = categoryDefs.find((d) => d.label === payload.value);
+                const isActive = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
+                return (
+                  <text
+                    x={x}
+                    y={y}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill={isActive ? "#58a6ff" : "#8b949e"}
+                    fontSize={12}
+                    fontWeight={isActive ? 700 : 400}
+                    cursor="pointer"
+                    onClick={() => {
+                      if (cat) {
+                        if (isActive) {
+                          onFilterChange?.("clear", null);
+                        } else {
+                          onFilterChange?.("category", cat.key);
+                        }
+                      }
+                    }}
+                  >
+                    {payload.value}
+                  </text>
+                );
+              }}
+            />
+            <PolarRadiusAxis tick={false} axisLine={false} />
+            <Radar
+              dataKey="count"
+              stroke="#58a6ff"
+              fill="#58a6ff"
+              fillOpacity={0.15}
+              strokeWidth={2}
+              dot={({ cx, cy, index }: any) => {
+                if (cx == null || cy == null) return <></>;
+                const cat = categoryDefs[index];
+                const isActiveDot = cat && activeFilter?.type === "category" && activeFilter?.value === cat.key;
+                return (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={4}
+                    fill="#58a6ff"
+                    stroke="#0d1117"
+                    strokeWidth={1}
+                    cursor="pointer"
+                    onClick={(e: any) => {
+                      e.stopPropagation();
+                      if (cat) {
+                        if (isActiveDot) {
+                          onFilterChange?.("clear", null);
+                        } else {
+                          onFilterChange?.("category", cat.key);
+                        }
+                      }
+                    }}
+                  />
+                );
+              }}
+              activeDot={{ r: 6, fill: "#58a6ff", stroke: "#0d1117", strokeWidth: 2 }}
+            />
+            <Tooltip formatter={(value) => [String(value) + " 项", ""]} />
+          </RadarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

@@ -64,10 +64,10 @@ export default function PrInput({ onAnalyze }: PrInputProps) {
           {isLoading ? (
             <span className="flex items-center gap-2">
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
-              Analyzing...
+              分析中...
             </span>
           ) : (
-            "Analyze"
+            "分析"
           )}
         </button>
       </div>

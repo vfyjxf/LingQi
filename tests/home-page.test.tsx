@@ -90,7 +90,7 @@ describe("HomePage", () => {
       screen.getByPlaceholderText("https://github.com/owner/repo/pull/123"),
       "https://github.com/octocat/hello-world/pull/42"
     );
-    await user.click(screen.getByRole("button", { name: "Analyze" }));
+    await user.click(screen.getByRole("button", { name: "分析" }));
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /核心隐患审计/ })).toBeEnabled();

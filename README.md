@@ -34,6 +34,7 @@ LingQi 是一个面向 GitHub Pull Request 的 AI Review 助手。
 - **Vercel AI SDK**：统一模型调用入口，负责结构化输出调用。
 - **@ai-sdk/deepseek**：默认 DeepSeek provider，用于本地真实模型验证。
 - **minimatch**：用于 Review Profile 的路径 glob 匹配。
+- **Recharts**：用于效能统计面板中的图表展示。
 - **tsx**：运行本地 TypeScript smoke 脚本。
 
 所有运行时依赖和开发依赖均列在 `package.json` 中，并通过 `package-lock.json` 锁定版本。

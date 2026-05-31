@@ -39,7 +39,9 @@
   --sidebar-width: 220px;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -47,6 +49,8 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #30363d transparent;
 }
 
 body {
@@ -73,4 +77,27 @@ body {
 
 .animate-progress-bar {
   animation: progress-slide 1.5s ease-in-out infinite;
+}
+
+/* ---- Thin Scrollbar (GitHub Dark) ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8c959f;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }

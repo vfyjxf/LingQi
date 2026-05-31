@@ -144,11 +144,11 @@ const demoError: ReviewError = {
 };
 
 const loadingSteps = [
-  "正在解析 GitHub 拉取请求 URL...",
-  "正在安全获取远程 PR 提交日志和代码 Diff...",
-  "正在初始化 AI 代码特征识别引擎...",
-  "正在并联审查代码安全漏洞、逻辑陷阱及性能瓶颈...",
-  "正在对多级审查数据模型输出流进行编译和排版...",
+  "正在解析 PR 链接...",
+  "正在获取代码变更...",
+  "正在加载 AI 分析引擎...",
+  "正在审查代码...",
+  "正在生成审查报告...",
 ];
 
 const modeCards = [
@@ -383,8 +383,8 @@ export default function HomePage() {
             <RefreshCw className="h-8 w-8 animate-spin text-[#58a6ff]" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-semibold tracking-tight text-[#c9d1d9]">正为您在云端执行自动化审查</h3>
-            <p className="mx-auto max-w-sm text-sm text-[#8b949e]">AI 引擎正在获取源码 Diff、拆解修改意图、并针对安全性与执行效能出具详细审查意见。</p>
+            <h3 className="text-xl font-semibold tracking-tight text-[#c9d1d9]">正在审查代码，请稍候...</h3>
+            <p className="mx-auto max-w-sm text-sm text-[#8b949e]">AI 正在分析代码变更，检测安全漏洞、逻辑问题和性能瓶颈。</p>
           </div>
           <div className="mx-auto max-w-sm rounded-md border border-[#30363d] bg-[#161b22] p-4 shadow-sm">
             <div className="flex items-center gap-3">

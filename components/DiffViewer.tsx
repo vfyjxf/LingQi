@@ -73,7 +73,7 @@ export default function DiffViewer({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-800 px-4 py-2.5">
         <span className="text-xs font-medium text-slate-300">
-          Diff ({lines.length} lines)
+          差异 ({lines.length} 行)
         </span>
         <div className="flex gap-3 text-xs">
           <span className="text-green-400">+{addedCount}</span>

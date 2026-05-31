@@ -74,7 +74,18 @@ const result: AnalyzePullRequestResult = {
       "--- a/src/auth/session.ts",
       "+++ b/src/auth/session.ts",
       "@@ -1,3 +1,5 @@"
-    ].join("\n")
+    ].join("\n"),
+    audit: {
+      enabled: false,
+      totalGroups: 0,
+      includedFiles: 0,
+      omittedFiles: 0,
+      truncatedFiles: 0,
+      groups: [],
+      omitted: [],
+      truncated: [],
+      limitations: ["未启用 Review Profile，上下文未按分组预算审计。"]
+    }
   }
 };
 

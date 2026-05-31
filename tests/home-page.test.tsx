@@ -35,7 +35,7 @@ describe("HomePage", () => {
                   confidence: "high",
                   category: "security",
                   file: "src/auth/session.ts",
-                  line: 3,
+                  line: 1,
                   title: "刷新 token 前需要确认用户状态",
                   evidence: "diff 修改了 refreshSession 分支。",
                   impact: "禁用用户可能继续获得新 token。"
@@ -46,7 +46,7 @@ describe("HomePage", () => {
                   severity: "major",
                   confidence: "high",
                   file: "src/auth/session.ts",
-                  line: 3,
+                  line: 1,
                   problem: "刷新 token 时没有重新检查用户状态。",
                   recommendation: "刷新前查询用户状态。",
                   rationale: "避免已禁用账号继续获得有效会话。"
@@ -58,6 +58,43 @@ describe("HomePage", () => {
                 modelStrategy: "DeepSeek 结构化输出"
               }
             },
+            reviewDraft: {
+              publishableCount: 1,
+              blockedCount: 0,
+              comments: [
+                {
+                  path: "src/auth/session.ts",
+                  line: 1,
+                  side: "RIGHT",
+                  body: "刷新 token 前需要确认用户状态。",
+                  severity: "major",
+                  confidence: "high",
+                  source: "risk",
+                  canPublish: true
+                }
+              ]
+            },
+            reviewSubmitPlan: {
+              owner: "octocat",
+              repo: "hello-world",
+              pullNumber: 42,
+              payload: {
+                event: "COMMENT",
+                body: "dry-run",
+                comments: [
+                  {
+                    path: "src/auth/session.ts",
+                    line: 1,
+                    side: "RIGHT",
+                    body: "刷新 token 前需要确认用户状态。"
+                  }
+                ]
+              },
+              publishableCount: 1,
+              blockedCount: 0,
+              blockedComments: [],
+              dryRun: true
+            },
             context: {
               prUrl: "https://github.com/octocat/hello-world/pull/42",
               author: "octocat",
@@ -66,6 +103,17 @@ describe("HomePage", () => {
               changedFiles: 1,
               additions: 2,
               deletions: 1,
+              audit: {
+                enabled: false,
+                totalGroups: 0,
+                includedFiles: 0,
+                omittedFiles: 0,
+                truncatedFiles: 0,
+                groups: [],
+                omitted: [],
+                truncated: [],
+                limitations: []
+              },
               diffText: [
                 "diff --git a/src/auth/session.ts b/src/auth/session.ts",
                 "--- a/src/auth/session.ts",
@@ -101,5 +149,7 @@ describe("HomePage", () => {
     expect(
       screen.getByText(/diff --git a\/src\/auth\/session.ts/)
     ).toBeInTheDocument();
+    expect(screen.getByText("AI 风险评论")).toBeInTheDocument();
+    expect(screen.getByText("刷新 token 前需要确认用户状态。")).toBeInTheDocument();
   });
 });

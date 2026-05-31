@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import RiskCard from "@/components/RiskCard";
@@ -84,6 +84,13 @@ describe("RiskCard", () => {
   test("无 suggestion 时不显示修复建议", () => {
     renderCard();
     expect(screen.queryByText("修复建议")).toBeNull();
+  });
+
+  test("定位到代码按钮触发回调", async () => {
+    const onLocate = vi.fn();
+    renderCard({ onLocate });
+    await userEvent.setup().click(screen.getByText("定位到代码"));
+    expect(onLocate).toHaveBeenCalledWith(blockerRisk);
   });
 
   test("不再显示上下文展开按钮", () => {

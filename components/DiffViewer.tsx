@@ -1,15 +1,36 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, ChevronRight, MessageSquarePlus, Send } from "lucide-react";
+import type { ReviewDraftComment } from "@/lib/review-draft/schema";
+
+export type InlineReviewItem = {
+  id: string;
+  path: string;
+  line?: number;
+  title: string;
+  body: string;
+  severity?: string;
+  confidence?: string;
+  canPublish?: boolean;
+  blockedReason?: string;
+  source?: "risk" | "suggestion";
+};
 
 type DiffViewerProps = {
   diffText: string;
   maxHeight?: string;
+  selectedTarget?: {
+    path: string;
+    line?: number;
+  } | null;
+  inlineReviews?: InlineReviewItem[];
+  onAddComment?: (item: InlineReviewItem) => void;
+  onPublishReview?: (item: InlineReviewItem) => void;
 };
 
 function classifyLine(line: string): {
   type: "add" | "del" | "hunk" | "header" | "context";
-  lineNumber?: number;
 } {
   if (line.startsWith("+") && !line.startsWith("+++")) return { type: "add" };
   if (line.startsWith("-") && !line.startsWith("---")) return { type: "del" };
@@ -36,6 +57,15 @@ const typeStyle: Record<string, string> = {
   context: "text-[#8b949e]",
 };
 
+type DiffLine = {
+  index: number;
+  type: "add" | "del" | "hunk" | "header" | "context";
+  content: string;
+  path?: string;
+  oldLine?: number;
+  newLine?: number;
+};
+
 function LinePrefix(line: string, type: string): string {
   if (type === "add") return "+";
   if (type === "del") return "-";
@@ -46,16 +76,26 @@ function LinePrefix(line: string, type: string): string {
 export default function DiffViewer({
   diffText,
   maxHeight = "600px",
+  selectedTarget,
+  inlineReviews = [],
+  onAddComment,
+  onPublishReview,
 }: DiffViewerProps) {
-  const lines = useMemo(
-    () =>
-      diffText.split("\n").map((line, i) => ({
-        index: i,
-        ...classifyLine(line),
-        content: line,
-      })),
-    [diffText]
+  const [expandedReviews, setExpandedReviews] = useState<Record<string, boolean>>({});
+  const lineRefs = useRef<Record<string, HTMLElement | null>>({});
+  const lines = useMemo(() => parseDiffLines(diffText), [diffText]);
+  const reviewsByLocation = useMemo(
+    () => groupInlineReviews(inlineReviews),
+    [inlineReviews]
   );
+
+  useEffect(() => {
+    if (!selectedTarget) return;
+
+    const key = findBestLocationKey(lines, selectedTarget);
+    const target = lineRefs.current[key];
+    target?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [lines, selectedTarget]);
 
   if (!diffText.trim()) {
     return (
@@ -88,24 +128,377 @@ export default function DiffViewer({
       >
         <pre className="m-0 whitespace-pre text-xs leading-relaxed font-mono">
           {lines.map((line) => (
-            <code
+            <DiffCodeLine
               key={line.index}
-              className={[
-                "block px-4 py-[1px]",
-                typeStyle[line.type],
-              ].join(" ")}
-            >
-              <span className="mr-4 inline-block w-4 select-none text-right text-xs text-[#57606a]">
-                {line.index + 1}
-              </span>
-              <span className="mr-2 inline-block w-3 select-none text-center text-xs text-[#8b949e]">
-                {LinePrefix(line.content, line.type)}
-              </span>
-              {line.content}
-            </code>
+              line={line}
+              selectedTarget={selectedTarget}
+              reviews={reviewsByLocation.get(toLocationKey(line.path, line.newLine)) ?? []}
+              expandedReviews={expandedReviews}
+              setExpandedReviews={setExpandedReviews}
+              setLineRef={(element) => {
+                for (const key of getLineLocationKeys(line)) {
+                  lineRefs.current[key] = element;
+                }
+              }}
+              onAddComment={onAddComment}
+              onPublishReview={onPublishReview}
+            />
           ))}
         </pre>
       </div>
     </div>
   );
+}
+
+function DiffCodeLine({
+  line,
+  selectedTarget,
+  reviews,
+  expandedReviews,
+  setExpandedReviews,
+  setLineRef,
+  onAddComment,
+  onPublishReview,
+}: {
+  line: DiffLine;
+  selectedTarget?: DiffViewerProps["selectedTarget"];
+  reviews: InlineReviewItem[];
+  expandedReviews: Record<string, boolean>;
+  setExpandedReviews: (next: Record<string, boolean>) => void;
+  setLineRef: (element: HTMLElement | null) => void;
+  onAddComment?: (item: InlineReviewItem) => void;
+  onPublishReview?: (item: InlineReviewItem) => void;
+}) {
+  const isSelected = isSelectedLine(line, selectedTarget);
+
+  return (
+    <span ref={setLineRef} className="block">
+      <code
+        className={[
+          "block px-4 py-[1px]",
+          typeStyle[line.type],
+          isSelected ? "ring-1 ring-inset ring-cyan-400 bg-cyan-400/10" : "",
+        ].join(" ")}
+        data-path={line.path}
+        data-new-line={line.newLine}
+      >
+        <span className="mr-3 inline-block w-9 select-none text-right text-xs text-[#57606a]">
+          {line.newLine ?? ""}
+        </span>
+        <span className="mr-2 inline-block w-3 select-none text-center text-xs text-[#8b949e]">
+          {LinePrefix(line.content, line.type)}
+        </span>
+        {line.content}
+      </code>
+
+      {reviews.map((review) => {
+        const expanded = expandedReviews[review.id] ?? true;
+        return (
+          <InlineReviewCard
+            key={review.id}
+            review={review}
+            expanded={expanded}
+            onToggle={() =>
+              setExpandedReviews({
+                ...expandedReviews,
+                [review.id]: !expanded,
+              })
+            }
+            onAddComment={onAddComment}
+            onPublishReview={onPublishReview}
+          />
+        );
+      })}
+    </span>
+  );
+}
+
+function isSelectedLine(
+  line: DiffLine,
+  selectedTarget?: DiffViewerProps["selectedTarget"]
+) {
+  if (!selectedTarget || selectedTarget.path !== line.path) {
+    return false;
+  }
+
+  if (!selectedTarget.line) {
+    return line.type === "header" && line.content.startsWith("diff --git");
+  }
+
+  return (
+    selectedTarget.line === line.newLine || selectedTarget.line === line.oldLine
+  );
+}
+
+function InlineReviewCard({
+  review,
+  expanded,
+  onToggle,
+  onAddComment,
+  onPublishReview,
+}: {
+  review: InlineReviewItem;
+  expanded: boolean;
+  onToggle: () => void;
+  onAddComment?: (item: InlineReviewItem) => void;
+  onPublishReview?: (item: InlineReviewItem) => void;
+}) {
+  const [showCommentBox, setShowCommentBox] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [savedComments, setSavedComments] = useState<string[]>([]);
+
+  function handleSaveComment() {
+    const nextComment = commentText.trim();
+    if (!nextComment) return;
+
+    setSavedComments([...savedComments, nextComment]);
+    setCommentText("");
+    setShowCommentBox(false);
+    onAddComment?.(review);
+  }
+
+  return (
+    <span className="mx-4 my-2 block rounded-md border border-[#30363d] bg-[#0d1117] shadow-sm">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between gap-3 border-b border-[#30363d] bg-[#161b22] px-3 py-2 text-left text-xs text-[#c9d1d9] focus-visible:ring-2 focus-visible:ring-cyan-400"
+        aria-expanded={expanded}
+        onClick={onToggle}
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          <span className="whitespace-normal break-words font-semibold leading-relaxed">{review.title}</span>
+        </span>
+        <span className="shrink-0 rounded-full border border-[#30363d] px-2 py-0.5 text-xs text-[#8b949e]">
+          {review.canPublish === false ? "需人工确认" : "可写入 Review"}
+        </span>
+      </button>
+
+      {expanded && (
+        <span className="block min-w-0 space-y-3 px-3 py-3 text-xs">
+          <InlineMarkdown text={review.body} />
+          {review.blockedReason && (
+            <span className="block rounded-md border border-yellow-400/20 bg-yellow-400/10 px-3 py-2 text-yellow-400">
+              {review.blockedReason}
+            </span>
+          )}
+          <span className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#30363d] bg-[#161b22] px-3 py-1.5 text-xs font-semibold text-[#c9d1d9] hover:bg-[#21262d] focus-visible:ring-2 focus-visible:ring-cyan-400"
+              onClick={() => setShowCommentBox(!showCommentBox)}
+            >
+              <MessageSquarePlus className="h-3.5 w-3.5" />
+              补充 comment
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#238636] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:bg-[#21262d] disabled:text-[#57606a] focus-visible:ring-2 focus-visible:ring-cyan-400"
+              disabled={review.canPublish === false}
+              onClick={() => onPublishReview?.(review)}
+            >
+              <Send className="h-3.5 w-3.5" />
+              写入 GitHub Review
+            </button>
+          </span>
+
+          {showCommentBox && (
+            <span className="block space-y-2 rounded-md border border-[#30363d] bg-[#161b22] p-2">
+              <textarea
+                className="min-h-20 w-full resize-y rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-2 text-xs leading-relaxed text-[#c9d1d9] outline-none placeholder:text-[#57606a] focus:border-[#58a6ff]/50 focus-visible:ring-2 focus-visible:ring-cyan-400"
+                placeholder="补充给 reviewer 的上下文、疑问或修复建议..."
+                value={commentText}
+                onChange={(event) => setCommentText(event.target.value)}
+              />
+              <span className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="rounded-md border border-[#30363d] px-3 py-1.5 text-xs font-semibold text-[#8b949e] hover:bg-[#21262d] focus-visible:ring-2 focus-visible:ring-cyan-400"
+                  onClick={() => {
+                    setCommentText("");
+                    setShowCommentBox(false);
+                  }}
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md bg-[#238636] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:bg-[#21262d] disabled:text-[#57606a] focus-visible:ring-2 focus-visible:ring-cyan-400"
+                  disabled={!commentText.trim()}
+                  onClick={handleSaveComment}
+                >
+                  保存补充
+                </button>
+              </span>
+            </span>
+          )}
+
+          {savedComments.length > 0 && (
+            <span className="block space-y-2">
+              {savedComments.map((comment, index) => (
+                <span
+                  key={`${review.id}-comment-${index}`}
+                  className="block rounded-md border-l-2 border-[#58a6ff] bg-[#58a6ff]/10 px-3 py-2 text-xs leading-relaxed text-[#c9d1d9]"
+                >
+                  {comment}
+                </span>
+              ))}
+            </span>
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function InlineMarkdown({ text }: { text: string }) {
+  return (
+    <span className="block min-w-0 space-y-1.5 whitespace-pre-wrap break-words leading-relaxed text-[#c9d1d9]">
+      {text.split("\n").map((line, index) => (
+        <span key={`${index}-${line}`} className="block min-w-0 whitespace-pre-wrap break-words">
+          {line ? renderMarkdownLine(line) : "\u00a0"}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function renderMarkdownLine(line: string) {
+  const parts = line.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={`${index}-${part}`} className="font-semibold text-[#f0f6fc]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    return (
+      <span key={`${index}-${part}`} className="break-words">
+        {part}
+      </span>
+    );
+  });
+}
+
+function parseDiffLines(diffText: string): DiffLine[] {
+  let currentPath: string | undefined;
+  let oldLine: number | undefined;
+  let newLine: number | undefined;
+
+  return diffText.split("\n").map((content, index): DiffLine => {
+    const type = classifyLine(content).type;
+    const diffMatch = content.match(/^diff --git a\/(.+?) b\/(.+)$/);
+    if (diffMatch) {
+      currentPath = diffMatch[2];
+      oldLine = undefined;
+      newLine = undefined;
+    }
+
+    const hunkMatch = content.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+    if (hunkMatch) {
+      oldLine = Number(hunkMatch[1]);
+      newLine = Number(hunkMatch[2]);
+      return { index, type, content, path: currentPath };
+    }
+
+    const line: DiffLine = {
+      index,
+      type,
+      content,
+      path: currentPath,
+      oldLine,
+      newLine,
+    };
+
+    if (type === "add") {
+      newLine = newLine === undefined ? undefined : newLine + 1;
+    } else if (type === "del") {
+      oldLine = oldLine === undefined ? undefined : oldLine + 1;
+      line.newLine = undefined;
+    } else if (type === "context") {
+      oldLine = oldLine === undefined ? undefined : oldLine + 1;
+      newLine = newLine === undefined ? undefined : newLine + 1;
+    }
+
+    return line;
+  });
+}
+
+function groupInlineReviews(items: InlineReviewItem[]) {
+  return items.reduce<Map<string, InlineReviewItem[]>>((groups, item) => {
+    const key = toLocationKey(item.path, item.line);
+    if (!key) return groups;
+    groups.set(key, [...(groups.get(key) ?? []), item]);
+    return groups;
+  }, new Map());
+}
+
+function toLocationKey(path?: string, line?: number) {
+  if (!path || !line) return "";
+  return `${path}:${line}`;
+}
+
+function toOldLocationKey(path?: string, line?: number) {
+  if (!path || !line) return "";
+  return `${path}:old:${line}`;
+}
+
+function toFileLocationKey(path?: string) {
+  if (!path) return "";
+  return `${path}:file`;
+}
+
+function getLineLocationKeys(line: DiffLine): string[] {
+  return [
+    line.type === "header" && line.content.startsWith("diff --git")
+      ? toFileLocationKey(line.path)
+      : "",
+    toLocationKey(line.path, line.newLine),
+    toOldLocationKey(line.path, line.oldLine)
+  ].filter(Boolean);
+}
+
+function findBestLocationKey(
+  lines: DiffLine[],
+  target: NonNullable<DiffViewerProps["selectedTarget"]>
+) {
+  if (!target.line) {
+    return toFileLocationKey(target.path);
+  }
+
+  const exactNewLine = lines.find(
+    (line) => line.path === target.path && line.newLine === target.line
+  );
+  if (exactNewLine) {
+    return toLocationKey(target.path, target.line);
+  }
+
+  const exactOldLine = lines.find(
+    (line) => line.path === target.path && line.oldLine === target.line
+  );
+  if (exactOldLine) {
+    return toOldLocationKey(target.path, target.line);
+  }
+
+  return toFileLocationKey(target.path);
+}
+
+export function mapDraftCommentToInlineReview(
+  comment: ReviewDraftComment,
+  index: number
+): InlineReviewItem {
+  return {
+    id: `draft-${index}-${comment.path}-${comment.line ?? "file"}`,
+    path: comment.path,
+    line: comment.line,
+    title: comment.source === "risk" ? "AI 风险评论" : "AI Review 建议",
+    body: comment.body,
+    severity: comment.severity,
+    confidence: comment.confidence,
+    canPublish: comment.canPublish,
+    blockedReason: comment.blockedReason,
+    source: comment.source,
+  };
 }

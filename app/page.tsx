@@ -620,7 +620,7 @@ function delay(ms: number) {
 }
 
 function extractFileDiff(diffText: string, filename: string | null): string {
-  if (!filename) return "";
+  if (!filename) return diffText;
   const sections = diffText.split(/^(?=diff --git )/m).filter(Boolean);
   for (const section of sections) {
     const headerMatch = section.match(/^diff --git a\/(.+?) b\/(.+?)$/m);

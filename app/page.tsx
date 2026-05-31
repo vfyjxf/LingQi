@@ -169,6 +169,7 @@ export default function HomePage() {
     null
   );
   const [activeFilter, setActiveFilter] = useState<FilterState>({ type: null, value: null });
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   function handleFilterChange(type: "category" | "severity" | "clear", value: string | null) {
     if (type === "clear") {
@@ -210,6 +211,8 @@ export default function HomePage() {
       setStatus("done");
       setStep("done");
     } catch (error) {
+      const msg = error instanceof Error ? error.message : "PR 分析失败";
+      setErrorMessage(msg);
       setStatus("error");
       setStep("error");
     }
@@ -231,6 +234,7 @@ export default function HomePage() {
     setActiveTab("stats");
     setAnalysisResult(null);
     setActiveFilter({ type: null, value: null });
+    setErrorMessage(null);
   }
 
   const displayStats = buildStatsData(analysisResult) ?? demoStats;
@@ -360,11 +364,11 @@ export default function HomePage() {
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
               <div>
                 <h4 className="text-sm font-semibold text-red-400">评审流启动失败</h4>
-                <p className="mt-1 text-xs leading-relaxed text-slate-300">{demoError.message}</p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-300">{errorMessage ?? demoError.message}</p>
               </div>
             </div>
             <div className="mt-3 flex items-center justify-between gap-4 border-t border-slate-800 pt-3">
-              <p className="text-[10px] text-slate-500">请确认您已正确设置 <strong>GEMINI_API_KEY</strong>。</p>
+              <p className="text-[10px] text-slate-500">请确认您已正确配置 AI 模型密钥与 GitHub Token。</p>
               <button onClick={handleReset} className="rounded-md border border-slate-700 bg-slate-950 px-3 py-1.5 text-[10px] font-semibold text-slate-300 transition hover:bg-slate-800">返回配置页面</button>
             </div>
           </div>
@@ -531,16 +535,44 @@ function buildStatsData(result: AnalyzeResponse | null): StatsData | null {
   };
 }
 
+function parseFileStatusesFromDiff(diffText: string): Record<string, string> {
+  const statuses: Record<string, string> = {};
+  const sections = diffText.split(/^(?=diff --git )/m).filter(Boolean);
+
+  for (const section of sections) {
+    const headerMatch = section.match(/^diff --git a\/(.*?) b\/(.*?)$/m);
+    if (!headerMatch) continue;
+    const filename = headerMatch[1];
+
+    const bodyLines = section.split("\n");
+    let hasAdd = false;
+    let hasDel = false;
+
+    for (const line of bodyLines) {
+      if (line.startsWith("+") && !line.startsWith("+++")) hasAdd = true;
+      if (line.startsWith("-") && !line.startsWith("---")) hasDel = true;
+      if (hasAdd && hasDel) break;
+    }
+
+    if (hasAdd && !hasDel) statuses[filename] = "added";
+    else if (!hasAdd && hasDel) statuses[filename] = "removed";
+    else statuses[filename] = "modified";
+  }
+
+  return statuses;
+}
+
 function buildFileEntries(result: AnalyzeResponse | null): FileEntry[] | null {
   if (!result) return null;
 
+  const fileStatuses = parseFileStatusesFromDiff(result.context.diffText);
   const filenames = new Set<string>();
   for (const focus of result.report.reviewFocus) filenames.add(focus.file);
   for (const risk of result.report.risks) filenames.add(risk.file);
 
   return Array.from(filenames).map((filename) => ({
     filename,
-    status: "modified"
+    status: fileStatuses[filename] || "modified"
   }));
 }
 

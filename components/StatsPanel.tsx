@@ -1,6 +1,7 @@
 "use client";
 
 import { Award, AlertTriangle, ShieldCheck, Zap, Code2, CheckCircle } from "lucide-react";
+import { RadialBarChart, RadialBar, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 export type StatsData = {
   filesChanged: number;
@@ -68,20 +69,15 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
     minor: stats.minorCount,
     nit: stats.nitCount,
   };
-  const totalSev = stats.riskCount || 1;
   const hasRisks = stats.riskCount > 0;
 
-  /* ---- Donut ---- */
-  const radius = 35;
-  const circumference = 2 * Math.PI * radius;
-  let accumulated = 0;
-  const donutSegments = severitySegments.map((seg) => {
-    const pct = sevCounts[seg.key] / totalSev;
-    const dash = pct * circumference;
-    const offset = -accumulated * circumference;
-    accumulated += pct;
-    return { ...seg, dash, offset, pct };
-  });
+  /* ---- RadialBarChart data ---- */
+  const severityRadialData = severitySegments.map((seg) => ({
+    name: seg.label,
+    value: sevCounts[seg.key],
+    fill: seg.color,
+    key: seg.key,
+  }));
 
   /* ---- Category bars ---- */
   const catCounts = stats.categoryCounts ?? {};
@@ -120,53 +116,53 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
             <p className="text-xs font-semibold">零高危隐患，代码状态极为优秀！</p>
           </div>
         ) : (
-          <div className="flex flex-1 items-center justify-around gap-2">
-            <div className="relative h-28 w-28 shrink-0">
-              <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#21262d" strokeWidth="12" />
-                {donutSegments.map((seg) => (
-                  <circle
-                    key={seg.key}
-                    cx="50" cy="50" r={radius}
-                    fill="transparent"
-                    stroke={seg.color}
-                    strokeWidth="12"
-                    strokeDasharray={`${seg.dash} ${circumference}`}
-                    strokeDashoffset={seg.offset}
-                    strokeLinecap="round"
-                    className="cursor-pointer transition-all duration-500 hover:stroke-[14px]"
-                    onClick={() => onFilterChange?.("severity", seg.key)}
-                    aria-label={`按${seg.label}级别筛选`}
-                  />
-                ))}
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center font-mono">
-                <span className="text-lg font-black text-[#c9d1d9]">{stats.riskCount}</span>
-                <span className="text-xs font-semibold uppercase tracking-widest text-[#8b949e]">风险项</span>
-              </div>
-            </div>
-
-            <div className="w-28 space-y-2 text-xs">
-              {donutSegments.map((seg) => {
-                const isActive = activeFilter?.type === "severity" && activeFilter?.value === seg.key;
-                return (
-                  <button
-                    key={seg.key}
-                    onClick={() => onFilterChange?.("severity", seg.key)}
-                    className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left transition-all ${
-                      isActive ? "bg-[#21262d] font-semibold" : "hover:bg-[#21262d]"
-                    }`}
-                    style={{ borderLeft: isActive ? `2px solid ${seg.color}` : "2px solid transparent" }}
-                    aria-label={`按${seg.label}级别筛选`}
-                  >
-                    <span className="flex items-center gap-1.5 font-medium text-[#c9d1d9]">
-                      <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: seg.color }} />
-                      {seg.label}
-                    </span>
-                    <span className="rounded bg-[#21262d] px-1.5 py-0.5 font-mono text-xs text-[#8b949e]">{sevCounts[seg.key]}</span>
-                  </button>
-                );
-              })}
+          <div className="relative flex items-center justify-center h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart
+                cx="50%"
+                cy="50%"
+                innerRadius="30%"
+                outerRadius="90%"
+                barSize={14}
+                startAngle={90}
+                endAngle={-270}
+                data={severityRadialData}
+              >
+                <RadialBar
+                  dataKey="value"
+                  background={{ fill: "#21262d" }}
+                  cursor="pointer"
+                  onClick={(entry: any) => {
+                    if (activeFilter?.type === "severity" && activeFilter?.value === entry.payload.key) {
+                      onFilterChange?.("clear", null);
+                    } else {
+                      onFilterChange?.("severity", entry.payload.key);
+                    }
+                  }}
+                >
+                  {severityRadialData.map((seg) => {
+                    const isDimmed = activeFilter?.type === "severity" && activeFilter?.value !== seg.key;
+                    return (
+                      <Cell
+                        key={seg.key}
+                        fill={seg.fill}
+                        opacity={isDimmed ? 0.35 : 1}
+                      />
+                    );
+                  })}
+                </RadialBar>
+                <Tooltip
+                  formatter={(value) => {
+                    const total = severityRadialData.reduce((sum, d) => sum + d.value, 0) || 1;
+                    const pct = ((Number(value) / total) * 100).toFixed(1);
+                    return [`${value} 项 (${pct}%)`, ""];
+                  }}
+                />
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none font-mono">
+              <span className="text-lg font-black text-[#c9d1d9]">{stats.riskCount}</span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#8b949e]">风险项</span>
             </div>
           </div>
         )}

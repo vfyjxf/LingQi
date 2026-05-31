@@ -295,9 +295,10 @@ export default function HomePage() {
   /* ========================== Hero ========================== */
   if (step === "hero") {
     return (
-      <main className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
+      <main className="min-h-screen bg-[#0d1117] text-[#c9d1d9] flex flex-col">
         {header}
-        <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-3xl space-y-8 px-6 py-8">
           <div className="space-y-3 py-4 text-center">
             <h2 className="text-3xl font-black leading-tight tracking-tight text-[#c9d1d9]">让您的 PR 代码评审更高能、更健全</h2>
             <p className="mx-auto max-w-lg text-sm leading-relaxed text-[#8b949e]">
@@ -343,6 +344,7 @@ export default function HomePage() {
             </div>
           </div>
 
+          </div>
         </div>
       </main>
     );
@@ -374,11 +376,12 @@ export default function HomePage() {
 
   /* ========================== Loading / Done ========================== */
   return (
-    <main className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
+    <main className="min-h-screen bg-[#0d1117] text-[#c9d1d9] flex flex-col">
       {header}
 
       {step === "live" && status !== "done" && status !== "error" && (
-        <div className="mx-auto max-w-xl space-y-6 px-6 py-16 text-center">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-xl space-y-6 px-6 py-16 text-center">
           <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-full border border-[#30363d] bg-[#161b22]">
             <RefreshCw className="h-8 w-8 animate-spin text-[#58a6ff]" />
           </div>
@@ -394,6 +397,7 @@ export default function HomePage() {
               <span className="shrink-0 select-none font-mono text-xs font-semibold text-[#8b949e]">{loadingStep + 1} / {loadingSteps.length}</span>
             </div>
             <p className="mt-3 text-left text-xs font-semibold text-[#c9d1d9]">{loadingSteps[loadingStep]}</p>
+          </div>
           </div>
         </div>
       )}

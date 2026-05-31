@@ -159,10 +159,10 @@ export default function StatsPanel({ stats, activeFilter, onFilterChange }: Stat
                   })}
                 </RadialBar>
                 <Tooltip
-                  formatter={(value) => {
+                  formatter={(value, name) => {
                     const total = severityRadialData.reduce((sum, d) => sum + d.value, 0) || 1;
                     const pct = ((Number(value) / total) * 100).toFixed(1);
-                    return [`${value} 项 (${pct}%)`, ""];
+                    return [`${value} 项 (${pct}%)`, name];
                   }}
                 />
               </RadialBarChart>

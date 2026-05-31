@@ -244,12 +244,12 @@ export default function HomePage() {
   const displaySuggestions =
     buildSuggestions(analysisResult) ?? demoSuggestions;
   const filteredRisks = displayRisks.filter((r) => {
-    if (!activeFilter.type || !activeFilter.value) return true;
+    if (selectedFile && r.file !== selectedFile) return false;
     if (activeFilter.type === "severity") return r.severity === activeFilter.value;
     if (activeFilter.type === "category") return r.category === activeFilter.value;
     return true;
   });
-  const displayDiff = analysisResult?.context.diffText || demoDiff;
+  const displayDiff = extractFileDiff(analysisResult?.context.diffText || demoDiff, selectedFile);
   const displaySummary = buildSummaryData(analysisResult);
   const displayMeta = buildSummaryMeta(analysisResult);
   const displayGeneralSuggestions =
@@ -446,21 +446,38 @@ export default function HomePage() {
 
           {activeTab === "risks" && (
             <div className="flex gap-4 items-start min-h-[calc(100vh-12rem)]">
-              <aside className="w-[var(--sidebar-width)] shrink-0 sticky top-[var(--header-height)] max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-[#30363d] bg-[#161b22]">
-                <FileTree files={displayFiles} riskCounts={displayRiskCounts} onFileSelect={setSelectedFile} />
+              {/* Left column: File tree + Diff viewer (50%) */}
+              <aside className="flex-1 sticky top-[var(--header-height)] max-h-[calc(100vh-6rem)] overflow-y-auto flex flex-col gap-4">
+                <div className="shrink-0">
+                  <FileTree
+                    files={displayFiles}
+                    riskCounts={displayRiskCounts}
+                    onFileSelect={setSelectedFile}
+                    selectedFile={selectedFile}
+                    onClearFileSelect={() => setSelectedFile(null)}
+                  />
+                </div>
+                <div className="flex-1 min-h-0">
+                  <DiffViewer diffText={displayDiff} maxHeight="none" />
+                </div>
               </aside>
-              <main className="flex-[3] min-w-0">
-                <DiffViewer diffText={displayDiff} />
-              </main>
-              <aside className="flex-[2] min-w-[320px] max-h-[calc(100vh-6rem)] overflow-y-auto sticky top-[var(--header-height)] flex flex-col gap-4">
+
+              {/* Right column: Risk cards (50%) */}
+              <aside className="flex-1 sticky top-[var(--header-height)] max-h-[calc(100vh-6rem)] overflow-y-auto flex flex-col gap-4">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-sm font-semibold text-[#c9d1d9]">
                       发现代码安全及架构隐患
                       <span className="ml-1 font-normal text-[#8b949e]">
                         ({filteredRisks.length}{filteredRisks.length !== displayRisks.length ? ` / ${displayRisks.length}` : ""})
                       </span>
                     </h2>
+                    {selectedFile && (
+                      <span className="inline-flex items-center gap-1 rounded-md border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 text-xs font-medium text-[#58a6ff]">
+                        {selectedFile}
+                        <button onClick={() => setSelectedFile(null)} className="ml-0.5 font-semibold hover:text-[#58a6ff]" aria-label="清除文件筛选">&times;</button>
+                      </span>
+                    )}
                     {activeFilter.type && (
                       <span className="inline-flex items-center gap-1 rounded-md border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-2 py-0.5 text-xs font-medium text-[#58a6ff]">
                         筛选: {activeFilter.type === "severity" ? "级别" : "类别"}={activeFilter.value}
@@ -484,7 +501,7 @@ export default function HomePage() {
                         <p className="text-sm font-semibold text-[#8b949e]">没有匹配的隐患记录</p>
                         <p className="mt-1 text-xs text-[#8b949e]">当前筛选条件下未找到风险反馈，请清除筛选重试。</p>
                       </div>
-                      <button onClick={() => handleFilterChange("clear", null)} className="rounded-md border border-[#30363d] bg-[#161b22] px-4 py-2 text-xs font-semibold text-[#58a6ff] transition hover:bg-[#1c2128]">
+                      <button onClick={() => { setSelectedFile(null); handleFilterChange("clear", null); }} className="rounded-md border border-[#30363d] bg-[#161b22] px-4 py-2 text-xs font-semibold text-[#58a6ff] transition hover:bg-[#1c2128]">
                         清除所有筛选条件
                       </button>
                     </div>
@@ -501,6 +518,19 @@ export default function HomePage() {
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function extractFileDiff(diffText: string, filename: string | null): string {
+  if (!filename) return "";
+  const sections = diffText.split(/^(?=diff --git )/m).filter(Boolean);
+  for (const section of sections) {
+    const headerMatch = section.match(/^diff --git a\/(.+?) b\/(.+?)$/m);
+    if (!headerMatch) continue;
+    if (headerMatch[1] === filename || headerMatch[2] === filename) {
+      return section;
+    }
+  }
+  return "";
 }
 
 function buildStatsData(result: AnalyzeResponse | null): StatsData | null {

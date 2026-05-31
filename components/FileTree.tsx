@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { FolderOpen } from "lucide-react";
 
 export type FileEntry = {
   filename: string;
@@ -11,12 +12,16 @@ type FileTreeProps = {
   files: FileEntry[];
   riskCounts: Record<string, number>;
   onFileSelect?: (filename: string) => void;
+  selectedFile?: string | null;
+  onClearFileSelect?: () => void;
 };
 
 export default function FileTree({
   files,
   riskCounts,
   onFileSelect,
+  selectedFile,
+  onClearFileSelect,
 }: FileTreeProps) {
   const [search, setSearch] = useState("");
 
@@ -63,6 +68,35 @@ export default function FileTree({
 
       {/* File list */}
       <ul className="max-h-[400px] overflow-y-auto" role="listbox">
+        {/* "全部文件" entry — always visible, not affected by search */}
+        <li
+          role="option"
+          tabIndex={0}
+          className={[
+            "flex cursor-pointer items-center gap-3 border-b border-[#30363d] px-4 py-2.5 text-xs transition hover:bg-[#1c2128]",
+            selectedFile === null || selectedFile === undefined || selectedFile === ""
+              ? "bg-[#1c2128] border-l-2 border-l-[#58a6ff]"
+              : "",
+          ].join(" ")}
+          onClick={() => onClearFileSelect?.()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClearFileSelect?.();
+            }
+          }}
+        >
+          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-[#8b949e]" />
+          <span className="min-w-0 flex-1 truncate text-left font-semibold text-[#c9d1d9]">
+            全部文件 ({files.length})
+          </span>
+          {files.reduce((sum, f) => sum + (riskCounts[f.filename] ?? 0), 0) > 0 && (
+            <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#f85149]/10 px-1.5 text-xs font-semibold text-[#f85149]">
+              {files.reduce((sum, f) => sum + (riskCounts[f.filename] ?? 0), 0)}
+            </span>
+          )}
+        </li>
+
         {filtered.length === 0 && (
           <li className="px-4 py-6 text-center text-xs text-[#57606a]">
             {search ? "没有匹配的文件" : "暂无文件"}
@@ -77,7 +111,12 @@ export default function FileTree({
               key={file.filename}
               role="option"
               tabIndex={0}
-              className="flex cursor-pointer items-center gap-3 border-b border-[#30363d] px-4 py-2.5 text-xs transition hover:bg-[#1c2128] last:border-none"
+              className={[
+                "flex cursor-pointer items-center gap-3 border-b border-[#30363d] px-4 py-2.5 text-xs transition hover:bg-[#1c2128] last:border-none",
+                file.filename === selectedFile
+                  ? "bg-[#1c2128] border-l-2 border-l-[#58a6ff]"
+                  : "",
+              ].join(" ")}
               onClick={() => onFileSelect?.(file.filename)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onFileSelect?.(file.filename); } }}
             >

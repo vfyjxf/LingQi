@@ -74,3 +74,31 @@ body {
 .animate-progress-bar {
   animation: progress-slide 1.5s ease-in-out infinite;
 }
+
+/* ---- Thin Scrollbar (GitHub Dark) ---- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #30363d transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8c959f;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

@@ -17,14 +17,12 @@ import type { ReviewSummaryData, ReviewSummaryMeta } from "@/components/ReviewSu
 import { parsePrUrl } from "@/lib/github/parse-pr-url";
 import {
   GitPullRequest,
-  Sparkles,
   Shield,
   Zap,
   Code2,
   Layers,
   AlertCircle,
   RefreshCw,
-  ExternalLink,
   BarChart3,
   ShieldAlert,
 } from "lucide-react";
@@ -133,12 +131,6 @@ const demoError: ReviewError = {
   suggestion: "该 PR 可能不存在或仓库为私有。请检查链接后重试。",
 };
 
-const demoPrExamples = [
-  { name: "Guava [逻辑修正]", owner: "google", repo: "guava", no: "8446", url: "https://github.com/google/guava/pull/8446" },
-  { name: "Axios [类型重构]", owner: "axios", repo: "axios", no: "6231", url: "https://github.com/axios/axios/pull/6231" },
-  { name: "React [API扩展]", owner: "facebook", repo: "react", no: "31333", url: "https://github.com/facebook/react/pull/31333" },
-];
-
 const loadingSteps = [
   "正在解析 GitHub 拉取请求 URL...",
   "正在安全获取远程 PR 提交日志和代码 Diff...",
@@ -218,15 +210,6 @@ export default function HomePage() {
     }
   }, []);
 
-  function handleDemoError() {
-    setStep("live");
-    setStatus("fetching");
-    delay(800).then(() => {
-      setStatus("error");
-      setStep("error");
-    });
-  }
-
   function handleReset() {
     setStep("hero");
     setStatus("idle");
@@ -259,7 +242,7 @@ export default function HomePage() {
     <header className="sticky top-0 z-40 border-b border-[#30363d] bg-[#161b22]/80 backdrop-blur py-3 px-6">
       <div className="mx-auto flex max-w-7xl items-center">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#c9d1d9] text-[#0d1117]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#58a6ff]/20 text-[#58a6ff]">
             <GitPullRequest className="h-5 w-5" />
           </div>
           <div>
@@ -281,9 +264,6 @@ export default function HomePage() {
         {header}
         <div className="mx-auto max-w-3xl space-y-8 px-6 py-8">
           <div className="space-y-3 py-4 text-center">
-            <div className="inline-flex items-center gap-1 rounded-full border border-[#58a6ff]/30 bg-[#58a6ff]/10 px-3 py-1 text-xs font-semibold text-[#58a6ff]">
-              <Sparkles className="h-3.5 w-3.5" />AI 深度赋能
-            </div>
             <h2 className="text-3xl font-black leading-tight tracking-tight text-[#c9d1d9]">让您的 PR 代码评审更高能、更健全</h2>
             <p className="mx-auto max-w-lg text-sm leading-relaxed text-[#8b949e]">
               输入 GitHub 公开仓库的项目 PR 页面链接，自动提取变更增量，并由 AI 深度评估代码缺陷、潜在高危漏洞、并发冲突与重构建议。
@@ -328,30 +308,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <p className="text-center text-xs font-semibold text-[#8b949e]">或者，一键点击测试精选公开 PR</p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {demoPrExamples.map((demo) => (
-                <button
-                  key={demo.no}
-                  onClick={() => handleAnalyze(demo.url)}
-                  className="group rounded-md border border-[#30363d] bg-[#161b22] p-3 text-left shadow-sm transition-all hover:border-[#58a6ff]/50 hover:shadow-md"
-                >
-                  <p className="flex items-center justify-between text-xs font-semibold leading-tight text-[#58a6ff]">
-                    {demo.name}
-                    <ExternalLink className="h-3 w-3 text-[#57606a] group-hover:text-[#58a6ff]" />
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-[#8b949e]">{demo.owner}/{demo.repo} #{demo.no}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {process.env.NODE_ENV === "development" && (
-          <div className="text-center">
-            <button className="text-xs text-[#8b949e] underline transition-colors hover:text-[#f85149]" onClick={handleDemoError}>模拟错误状态</button>
-          </div>
-          )}
         </div>
       </main>
     );

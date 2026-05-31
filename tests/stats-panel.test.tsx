@@ -33,10 +33,10 @@ describe("StatsPanel", () => {
   test("显示所有严重级别分类", () => {
     render(<StatsPanel stats={mockStats} />);
 
-    expect(screen.getByText("Blocker")).toBeInTheDocument();
-    expect(screen.getByText("Major")).toBeInTheDocument();
-    expect(screen.getByText("Minor")).toBeInTheDocument();
-    expect(screen.getByText("Nit")).toBeInTheDocument();
+    expect(screen.getByText("阻断")).toBeInTheDocument();
+    expect(screen.getByText("严重")).toBeInTheDocument();
+    expect(screen.getByText("轻微")).toBeInTheDocument();
+    expect(screen.getByText("建议")).toBeInTheDocument();
   });
 
   test("零风险时显示优秀状态", () => {

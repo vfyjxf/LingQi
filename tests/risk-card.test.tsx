@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import RiskCard from "@/components/RiskCard";
@@ -39,7 +39,7 @@ function renderCard(props = {}) {
 describe("RiskCard", () => {
   test("显示严重级别徽章和分类徽章", () => {
     renderCard();
-    expect(screen.getByText("Blocker")).toBeInTheDocument();
+    expect(screen.getByText("阻断")).toBeInTheDocument();
     expect(screen.getByText("安全相关")).toBeInTheDocument();
   });
 
@@ -56,7 +56,7 @@ describe("RiskCard", () => {
 
   test("Major severity 显示对应徽章", () => {
     render(<RiskCard risk={majorRisk} />);
-    expect(screen.getByText("Major")).toBeInTheDocument();
+    expect(screen.getByText("严重")).toBeInTheDocument();
     expect(screen.getByText("性能隐患")).toBeInTheDocument();
   });
 
@@ -86,22 +86,10 @@ describe("RiskCard", () => {
     expect(screen.queryByText("修复建议")).toBeNull();
   });
 
-  test("展开上下文按钮触发回调", async () => {
-    const onExpandContext = vi.fn();
-    renderCard({ onExpandContext });
-    await userEvent.setup().click(screen.getByText("展开上下文"));
-    expect(onExpandContext).toHaveBeenCalled();
-  });
-
-  test("上下文已展开时不显示按钮", () => {
-    renderCard({ contextExpanded: true });
-    expect(screen.getByText("上下文已展开")).toBeInTheDocument();
+  test("不再显示上下文展开按钮", () => {
+    renderCard();
     expect(screen.queryByText("展开上下文")).toBeNull();
-  });
-
-  test("展开中状态禁用按钮", () => {
-    renderCard({ isExpanding: true, onExpandContext: vi.fn() });
-    expect(screen.getByText("展开中...")).toBeInTheDocument();
-    expect(screen.getByText("展开中...")).toBeDisabled();
+    expect(screen.queryByText("上下文已展开")).toBeNull();
+    expect(screen.queryByText("展开中...")).toBeNull();
   });
 });
